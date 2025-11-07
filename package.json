@@ -1,0 +1,75 @@
+{
+  "name": "winput",
+  "version": "1.1.1",
+  "description": "Windows input automation library for Bun - control mouse and keyboard programmatically",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "bun": "./dist/index.js",
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run clean && bun run build:js && bun run build:types",
+    "build:js": "bun build src/index.ts --outdir dist --target bun --format esm",
+    "build:types": "bunx tsc --emitDeclarationOnly --outDir dist",
+    "clean": "rm -rf dist",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "commit": "bun run scripts/commit.ts",
+    "release": "bun run scripts/release.ts",
+    "release:patch": "bun run scripts/release.ts patch",
+    "release:minor": "bun run scripts/release.ts minor",
+    "release:major": "bun run scripts/release.ts major"
+  },
+  "keywords": [
+    "bun",
+    "automation",
+    "windows",
+    "mouse",
+    "keyboard",
+    "input",
+    "gui",
+    "autogui",
+    "pyautogui",
+    "control",
+    "ffi",
+    "windows-api"
+  ],
+  "author": "wuw.shz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wuw-shz/winput.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wuw-shz/winput/issues"
+  },
+  "homepage": "https://github.com/wuw-shz/winput#readme",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "os": [
+    "win32"
+  ],
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "devDependencies": {
+    "@types/cli-progress": "^3.11.6",
+    "cli-progress": "^3.12.0",
+    "gradient-string": "^3.0.0",
+    "nanospinner": "^1.2.2"
+  },
+  "dependencies": {
+    "bun": "latest",
+    "@types/bun": "latest"
+  }
+}

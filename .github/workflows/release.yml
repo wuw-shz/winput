@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      id-token: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+        
+    - name: Install dependencies
+      run: bun install
+      
+    - name: Run tests
+      run: bun test
+      
+    - name: Build project
+      run: bun run build
+      
+    - name: Extract version from tag
+      id: get_version
+      shell: pwsh
+      run: |
+        $tag = "${{ github.ref_name }}"
+        $version = $tag -replace '^v', ''
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "TAG=$tag" >> $env:GITHUB_OUTPUT
+      
+    - name: Verify version matches package.json
+      shell: pwsh
+      run: |
+        $packageVersion = (Get-Content package.json | ConvertFrom-Json).version
+        $tagVersion = "${{ steps.get_version.outputs.VERSION }}"
+        if ($packageVersion -ne $tagVersion) {
+          Write-Error "Version mismatch! package.json: $packageVersion, tag: $tagVersion"
+          exit 1
+        }
+        Write-Host "✓ Version verified: $packageVersion"
+    
+    - name: Generate release notes
+      id: changelog
+      shell: pwsh
+      run: |
+        $version = "${{ steps.get_version.outputs.VERSION }}"
+        
+        # Extract changelog for this version
+        $changelog = Get-Content CHANGELOG.md -Raw
+        $pattern = "## \[$version\][\s\S]*?(?=## \[|$)"
+        
+        if ($changelog -match $pattern) {
+          $notes = $matches[0]
+          # Save to file for multiline output
+          $notes | Out-File -FilePath release-notes.txt -Encoding utf8
+          echo "FOUND=true" >> $env:GITHUB_OUTPUT
+        } else {
+          echo "## Changes in $version" | Out-File -FilePath release-notes.txt -Encoding utf8
+          echo "" | Out-File -FilePath release-notes.txt -Append -Encoding utf8
+          echo "See [CHANGELOG.md](CHANGELOG.md) for details." | Out-File -FilePath release-notes.txt -Append -Encoding utf8
+          echo "FOUND=false" >> $env:GITHUB_OUTPUT
+        }
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ steps.get_version.outputs.VERSION }}
+        body_path: release-notes.txt
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
+        generate_release_notes: ${{ steps.changelog.outputs.FOUND == 'false' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
