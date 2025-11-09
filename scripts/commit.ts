@@ -188,9 +188,7 @@ async function commit() {
     })
 
     await withSpinner('Pushing to origin/main', async () => {
-      await runCommand('git', ['push', '-u', 'origin', 'main'], {
-        silent: true,
-      })
+      await runCommand('git', ['push', '-u', 'origin', 'main'])
     })
 
     console.log(
