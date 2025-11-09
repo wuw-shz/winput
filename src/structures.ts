@@ -3,7 +3,7 @@ export class MouseInput {
   view: DataView
 
   constructor(dx = 0, dy = 0, mouseData = 0, dwFlags = 0, time = 0) {
-    this.buffer = new ArrayBuffer(28) // 4+4+4+4+4+8 = 28 bytes
+    this.buffer = new ArrayBuffer(28) // 4+4+4+4+4+8 = 28 bytesw
     this.view = new DataView(this.buffer)
     this.view.setInt32(0, dx, true)
     this.view.setInt32(4, dy, true)
