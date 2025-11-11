@@ -68,7 +68,6 @@ jobs:
         } else {
           echo "## Changes in $version" | Out-File -FilePath release-notes.txt -Encoding utf8
           echo "" | Out-File -FilePath release-notes.txt -Append -Encoding utf8
-          echo "See [CHANGELOG.md](CHANGELOG.md) for details." | Out-File -FilePath release-notes.txt -Append -Encoding utf8
           echo "FOUND=false" >> $env:GITHUB_OUTPUT
         }
         
