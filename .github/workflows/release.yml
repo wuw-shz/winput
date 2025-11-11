@@ -50,31 +50,11 @@ jobs:
         }
         Write-Host "✓ Version verified: $packageVersion"
     
-    - name: Generate release notes
-      id: changelog
-      shell: pwsh
-      run: |
-        $version = "${{ steps.get_version.outputs.VERSION }}"
-        
-        # Extract changelog for this version
-        $changelog = Get-Content CHANGELOG.md -Raw
-        $pattern = "## \[$version\][\s\S]*?(?=## \[|$)"
-        
-        if ($changelog -match $pattern) {
-          $notes = $matches[0]
-          # Save to file for multiline output
-          $notes | Out-File -FilePath release-notes.txt -Encoding utf8
-          echo "FOUND=true" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "FOUND=false" >> $env:GITHUB_OUTPUT
-        }
-        
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref_name }}
         name: Release ${{ steps.get_version.outputs.VERSION }}
-        body_path: release-notes.txt
         draft: false
         prerelease: ${{ contains(github.ref_name, '-') }}
         generate_release_notes: true
