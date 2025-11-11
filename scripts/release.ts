@@ -335,17 +335,6 @@ async function rollback(newVersion: string) {
   )
 
   try {
-    if (rollbackState.versionChanged) {
-      await withSpinner(
-        `Restoring package.json to ${rollbackState.originalVersion}`,
-        async () => {
-          const pkg = readPackageJson()
-          pkg.version = rollbackState.originalVersion
-          writePackageJson(pkg)
-        }
-      )
-    }
-
     await withSpinner('Resetting git working directory', async () => {
       await runCommand('git', ['reset', '--hard', 'HEAD'], { silent: true })
     })
@@ -395,7 +384,9 @@ async function rollback(newVersion: string) {
       const pkg = readPackageJson()
       console.log(`${c.brightRed}⚠️  Package was published!${c.reset}`)
       console.log(`${c.yellow}Options:${c.reset}`)
-      console.log(`  bun pm deprecate ${pkg.name}@${newVersion} "Broken release"`)
+      console.log(
+        `  bun pm deprecate ${pkg.name}@${newVersion} "Broken release"`
+      )
       console.log(`  bun run release patch`)
     }
 
@@ -475,6 +466,7 @@ async function release() {
     // Build
     await withSpinner('Building project', async () => {
       await runCommand('bun', ['run', 'build'], { silent: true })
+      await Bun.sleep(100)
     })
 
     if (!sameVersionRelease) {
