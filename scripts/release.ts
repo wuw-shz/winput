@@ -299,7 +299,7 @@ async function waitForWorkflowCompletion(
     spinner.stop()
 
     const watchProc = Bun.spawn(
-      ['gh', 'run', 'watch', runId.toString(), '--exit-status', '-i', '0'],
+      ['gh', 'run', 'watch', runId.toString(), '--exit-status', '-i', '1'],
       {
         cwd: PROJECT_ROOT,
         stdout: 'inherit',
