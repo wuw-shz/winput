@@ -1,6 +1,6 @@
 import { ptr } from 'bun:ffi'
 import { user32 } from '../core/ffi-loader'
-import { KeyBdInput, Input } from '../core/structures'
+import { KeyboardInput, Input } from '../core/structures'
 import { failSafeCheck, handlePause } from '../core/utils'
 import { KEYBOARD_MAPPING, SHIFT_KEYS } from './mapping'
 import {
@@ -16,11 +16,11 @@ export function down(
   _pause = config.PAUSE
 ) {
   failSafeCheck()
-  let keybdFlags = KEYEVENTF_SCANCODE
+  let keyboardFlags = KEYEVENTF_SCANCODE
   if (['up', 'left', 'down', 'right'].includes(key))
-    keybdFlags |= KEYEVENTF_EXTENDEDKEY
+    keyboardFlags |= KEYEVENTF_EXTENDEDKEY
   const hexKeyCode = KEYBOARD_MAPPING[key]
-  const ki = new KeyBdInput(0, hexKeyCode, keybdFlags, 0)
+  const ki = new KeyboardInput(0, hexKeyCode, keyboardFlags, 0)
   const input = new Input(1, ki)
   user32.symbols.SendInput(1, ptr(input.buffer), 40)
   if (_pause) handlePause(_pause)
@@ -29,11 +29,11 @@ export function down(
 
 export function up(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
   failSafeCheck()
-  let keybdFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
+  let keyboardFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
   if (['up', 'left', 'down', 'right'].includes(key))
-    keybdFlags |= KEYEVENTF_EXTENDEDKEY
+    keyboardFlags |= KEYEVENTF_EXTENDEDKEY
   const hexKeyCode = KEYBOARD_MAPPING[key]
-  const ki = new KeyBdInput(0, hexKeyCode, keybdFlags, 0)
+  const ki = new KeyboardInput(0, hexKeyCode, keyboardFlags, 0)
   const input = new Input(1, ki)
   user32.symbols.SendInput(1, ptr(input.buffer), 40)
   if (_pause) handlePause(_pause)

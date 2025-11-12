@@ -20,7 +20,7 @@ export class MouseInput {
   }
 }
 
-export class KeyBdInput {
+export class KeyboardInput {
   buffer: ArrayBuffer
   view: DataView
   constructor(wVk = 0, wScan = 0, dwFlags = 0, time = 0, dwExtraInfo = 0n) {
@@ -37,7 +37,7 @@ export class KeyBdInput {
 export class Input {
   buffer: ArrayBuffer
   view: DataView
-  constructor(type: number, inputUnion: MouseInput | KeyBdInput) {
+  constructor(type: number, inputUnion: MouseInput | KeyboardInput) {
     this.buffer = new ArrayBuffer(40)
     this.view = new DataView(this.buffer)
     this.view.setUint32(0, type, true)
