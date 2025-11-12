@@ -2,7 +2,7 @@
 
 /**
  * Usage:
- *   bun run release [patch|minor|major|version] [--no-publish] [--skip-workflow] [--dry-run]
+ *   bun run release [patch|minor|major|version] [--no-publish] [--dry-run]
  */
 
 import gradient from 'gradient-string'
@@ -87,8 +87,17 @@ function bumpVersion(current: string, type: BumpType): string {
     case 'major':
       return `${major + 1}.0.0`
     case 'minor':
+      if (minor + 1 >= 10) {
+        return `${major + 1}.0.0`
+      }
       return `${major}.${minor + 1}.0`
     case 'patch':
+      if (patch + 1 >= 10) {
+        if (minor + 1 >= 10) {
+          return `${major + 1}.0.0`
+        }
+        return `${major}.${minor + 1}.0`
+      }
       return `${major}.${minor}.${patch + 1}`
   }
 }
@@ -154,22 +163,122 @@ async function checkGitStatus() {
   }
 }
 
-async function getCurrentBranch(): Promise<string> {
-  const proc = Bun.spawn(['git', 'branch', '--show-current'], {
-    cwd: PROJECT_ROOT,
-    stdout: 'pipe',
-  })
-
-  return (await new Response(proc.stdout).text()).trim()
+async function getLastTag(): Promise<string | null> {
+  try {
+    return await runCommandWithOutput('git', [
+      'describe',
+      '--tags',
+      '--abbrev=0',
+    ])
+  } catch {
+    return null
+  }
 }
 
-async function getLastCommitHash(): Promise<string> {
-  const proc = Bun.spawn(['git', 'rev-parse', 'HEAD'], {
-    cwd: PROJECT_ROOT,
-    stdout: 'pipe',
+async function getCommitsSinceTag(tag: string | null): Promise<string[]> {
+  try {
+    const range = tag ? `${tag}..HEAD` : 'HEAD'
+    const output = await runCommandWithOutput('git', [
+      'log',
+      range,
+      '--pretty=format:%s',
+      '--no-merges',
+    ])
+    return output.split('\n').filter((line) => line.trim())
+  } catch {
+    return []
+  }
+}
+
+async function generateReleaseNotes(newVersion: string): Promise<string> {
+  const lastTag = await getLastTag()
+  const commits = await getCommitsSinceTag(lastTag)
+
+  let notes = `## Release v${newVersion}\n\n`
+
+  if (commits.length === 0) {
+    notes += '_No changes since last release_\n'
+    return notes
+  }
+
+  notes += `### Changes\n\n`
+
+  // Group commits by type
+  const features: string[] = []
+  const fixes: string[] = []
+  const docs: string[] = []
+  const chores: string[] = []
+  const others: string[] = []
+
+  commits.forEach((commit) => {
+    const lower = commit.toLowerCase()
+    if (lower.startsWith('feat:') || lower.startsWith('feature:')) {
+      features.push(commit.replace(/^(feat|feature):\s*/i, ''))
+    } else if (lower.startsWith('fix:')) {
+      fixes.push(commit.replace(/^fix:\s*/i, ''))
+    } else if (lower.startsWith('docs:')) {
+      docs.push(commit.replace(/^docs:\s*/i, ''))
+    } else if (
+      lower.startsWith('chore:') ||
+      lower.startsWith('build:') ||
+      lower.startsWith('ci:')
+    ) {
+      chores.push(commit.replace(/^(chore|build|ci):\s*/i, ''))
+    } else {
+      others.push(commit)
+    }
   })
 
-  return (await new Response(proc.stdout).text()).trim()
+  if (features.length > 0) {
+    notes += `#### ✨ Features\n`
+    features.forEach((feat) => {
+      notes += `- ${feat}\n`
+    })
+    notes += '\n'
+  }
+
+  if (fixes.length > 0) {
+    notes += `#### 🐛 Bug Fixes\n`
+    fixes.forEach((fix) => {
+      notes += `- ${fix}\n`
+    })
+    notes += '\n'
+  }
+
+  if (docs.length > 0) {
+    notes += `#### 📝 Documentation\n`
+    docs.forEach((doc) => {
+      notes += `- ${doc}\n`
+    })
+    notes += '\n'
+  }
+
+  if (chores.length > 0) {
+    notes += `#### 🔧 Maintenance\n`
+    chores.forEach((chore) => {
+      notes += `- ${chore}\n`
+    })
+    notes += '\n'
+  }
+
+  if (others.length > 0) {
+    notes += `#### Other Changes\n`
+    others.forEach((other) => {
+      notes += `- ${other}\n`
+    })
+    notes += '\n'
+  }
+
+  // Add workflow information
+  notes += `---\n\n`
+  notes += `**Full Changelog**: `
+  if (lastTag) {
+    notes += `${lastTag}...v${newVersion}`
+  } else {
+    notes += `v${newVersion}`
+  }
+
+  return notes
 }
 
 async function getRemoteUrl(): Promise<string> {
@@ -256,74 +365,30 @@ async function autoCommitIfDirty() {
   await runCommand('bun', ['run', 'commit'], { silent: true })
 }
 
-async function waitForWorkflowCompletion(
+async function createGitHubRelease(
   owner: string,
   repo: string,
-  tagName: string
-): Promise<boolean> {
-  const spinner = startSpinner('Monitoring GitHub workflow')
-  const startTime = Date.now()
+  version: string,
+  notes: string
+): Promise<void> {
+  const tempFile = join(PROJECT_ROOT, '.release-notes.tmp')
+  writeFileSync(tempFile, notes)
 
   try {
-    const ghCheck = Bun.spawn(['gh', '--version'], {
-      stdout: 'pipe',
-      stderr: 'pipe',
-    })
-    await ghCheck.exited
-
-    await Bun.sleep(1000)
-
-    const output = await runCommandWithOutput('gh', [
-      'run',
-      'list',
-      '--workflow=release.yml',
-      '--limit=1',
-      '--json',
-      'databaseId,status,conclusion',
+    await runCommand('gh', [
+      'release',
+      'create',
+      `v${version}`,
+      '--title',
+      `v${version}`,
+      '--notes-file',
+      tempFile,
     ])
-
-    const runs = JSON.parse(output)
-
-    if (runs.length === 0) {
-      spinner.warn({ text: 'Workflow not found (may still be queuing)' })
-      return true
-    }
-
-    const run = runs[0]
-    const runId = run.databaseId
-
-    spinner.update({ text: `Watching workflow run #${runId}` })
-
-    spinner.stop()
-
-    const watchProc = Bun.spawn(
-      ['gh', 'run', 'watch', runId.toString(), '--exit-status', '-i', '1'],
-      {
-        cwd: PROJECT_ROOT,
-        stdout: 'inherit',
-        stderr: 'inherit',
-      }
-    )
-
-    const exitCode = await watchProc.exited
-    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
-
-    if (exitCode === 0) {
-      console.log(`${c.green}✓ Workflow completed (${duration}s)${c.reset}`)
-      return true
-    } else {
-      console.log(`${c.red}✗ Workflow failed (${duration}s)${c.reset}`)
-      console.log(
-        `${c.yellow}View logs: https://github.com/${owner}/${repo}/actions/runs/${runId}${c.reset}`
-      )
-      return false
-    }
-  } catch (error) {
-    spinner.error({ text: 'Workflow monitoring failed' })
-    console.log(
-      `${c.yellow}Check manually: https://github.com/${owner}/${repo}/actions${c.reset}`
-    )
-    return true
+  } finally {
+    try {
+      await Bun.write(tempFile, '')
+      await runCommandWithOutput('rm', [tempFile])
+    } catch {}
   }
 }
 
@@ -370,11 +435,22 @@ async function rollback(newVersion: string) {
             silent: true,
           })
         })
+
+        await withSpinner('Deleting GitHub release', async () => {
+          await runCommand(
+            'gh',
+            ['release', 'delete', `v${newVersion}`, '-y'],
+            {
+              silent: true,
+            }
+          ).catch(() => {})
+        })
       } catch (error) {
         console.log(`${c.red}✗ Could not clean remote automatically${c.reset}`)
         console.log(`${c.yellow}Manual cleanup required:${c.reset}`)
         console.log(`  git push origin :refs/tags/v${newVersion}`)
         console.log(`  git push origin main --force`)
+        console.log(`  gh release delete v${newVersion}`)
       }
     }
 
@@ -403,8 +479,6 @@ async function release() {
 
   const skipPublish = args.includes('--no-publish')
   const dryRun = args.includes('--dry-run')
-  const skipWorkflow =
-    args.includes('--skip-workflow') || args.includes('--no-workflow')
   const versionArg = args.find((arg) => !arg.startsWith('--'))
 
   header('winput release')
@@ -443,7 +517,10 @@ async function release() {
   }
 
   if (dryRun) {
-    console.log(`${c.brightCyan}✨ Dry run complete${c.reset}\n`)
+    console.log(`\n${c.brightMagenta}Preview release notes:${c.reset}\n`)
+    const notes = await generateReleaseNotes(newVersion)
+    console.log(notes)
+    console.log(`\n${c.brightCyan}✨ Dry run complete${c.reset}\n`)
     process.exit(0)
   }
 
@@ -496,20 +573,22 @@ async function release() {
       rollbackState.pushed = true
     })
 
-    // Workflow monitoring
-    if (!skipWorkflow) {
-      const repoInfo = await parseRepoInfo()
-      if (repoInfo) {
-        const workflowSuccess = await waitForWorkflowCompletion(
+    // Generate release
+    const repoInfo = await parseRepoInfo()
+    if (repoInfo) {
+      await withSpinner('Creating GitHub release with notes', async () => {
+        const notes = await generateReleaseNotes(newVersion)
+        await createGitHubRelease(
           repoInfo.owner,
           repoInfo.repo,
-          `v${newVersion}`
+          newVersion,
+          notes
         )
-
-        if (!workflowSuccess) {
-          throw new Error('GitHub Release workflow failed')
-        }
-      }
+      })
+    } else {
+      console.log(
+        `${c.yellow}⚠️  Could not parse repo info - skipping GitHub release${c.reset}`
+      )
     }
 
     // Publish
