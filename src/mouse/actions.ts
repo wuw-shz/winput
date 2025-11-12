@@ -76,8 +76,8 @@ export function up(button: MouseButton = LEFT, _pause = config.PAUSE) {
 
 export function click(
   button: Exclude<MouseButton, 'x1' | 'x2'> = LEFT,
-  clicks = 1,
-  interval = 0.0,
+  repeat = 1,
+  delay = 0.0,
   _pause = config.PAUSE
 ) {
   if ([LEFT, MIDDLE, RIGHT].includes(button)) {
@@ -93,7 +93,7 @@ export function click(
       downEv = MOUSEEVENTF_RIGHTDOWN
       upEv = MOUSEEVENTF_RIGHTUP
     }
-    for (let i = 0; i < clicks; i++) {
+    for (let i = 0; i < repeat; i++) {
       failSafeCheck()
       user32.symbols.SendInput(
         1,
@@ -105,7 +105,7 @@ export function click(
         ptr(new Input(0, new MouseInput(0, 0, 0, upEv, 0)).buffer),
         40
       )
-      if (interval > 0) Bun.sleepSync(interval * 1000)
+      if (delay > 0) Bun.sleepSync(delay * 1000)
     }
   }
   if (_pause) handlePause(_pause)

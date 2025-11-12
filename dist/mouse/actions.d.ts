@@ -23,7 +23,7 @@ export declare function up(button?: MouseButton, _pause?: boolean): {
     moveRel: typeof moveRel;
     listener: import("./listener").Listener;
 };
-export declare function click(button?: Exclude<MouseButton, 'x1' | 'x2'>, clicks?: number, interval?: number, _pause?: boolean): {
+export declare function click(button?: Exclude<MouseButton, 'x1' | 'x2'>, repeat?: number, delay?: number, _pause?: boolean): {
     get position(): {
         x: number;
         y: number;

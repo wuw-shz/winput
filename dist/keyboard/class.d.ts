@@ -3,7 +3,7 @@ import { Listener } from './listener';
 declare class Keyboard {
     down: typeof actions.down;
     up: typeof actions.up;
-    press: typeof actions.press;
+    tap: typeof actions.tap;
     write: typeof actions.write;
     listener: Listener;
 }

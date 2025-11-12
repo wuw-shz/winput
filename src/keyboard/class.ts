@@ -4,7 +4,7 @@ import { Listener } from './listener'
 class Keyboard {
   down = actions.down
   up = actions.up
-  press = actions.press
+  tap = actions.tap
   write = actions.write
 
   listener = new Listener()
