@@ -24,17 +24,11 @@ import {
   XBUTTON1,
   XBUTTON2,
 } from '../core/constants'
-import { LEFT, MIDDLE, RIGHT, X1, X2 } from './buttons'
+import { LEFT, MIDDLE, MouseButton, RIGHT, X1, X2 } from './buttons'
 import * as mouse from './index'
 import { config } from '../config'
 
-export function down(
-  x?: number,
-  y?: number,
-  button: string = LEFT,
-  _pause = config.PAUSE
-) {
-  if (x !== undefined || y !== undefined) moveTo(x, y)
+export function down(button: MouseButton = LEFT, _pause = config.PAUSE) {
   let ev: number
   let mouseData = 0
   if (button === LEFT) ev = MOUSEEVENTF_LEFTDOWN
@@ -57,13 +51,7 @@ export function down(
   return mouse
 }
 
-export function up(
-  x?: number,
-  y?: number,
-  button: string = LEFT,
-  _pause = config.PAUSE
-) {
-  if (x !== undefined || y !== undefined) moveTo(x, y)
+export function up(button: MouseButton = LEFT, _pause = config.PAUSE) {
   let ev: number
   let mouseData = 0
   if (button === LEFT) ev = MOUSEEVENTF_LEFTUP
@@ -87,14 +75,11 @@ export function up(
 }
 
 export function click(
-  x?: number,
-  y?: number,
+  button: Exclude<MouseButton, 'x1' | 'x2'> = LEFT,
   clicks = 1,
   interval = 0.0,
-  button: string = LEFT,
   _pause = config.PAUSE
 ) {
-  if (x !== undefined || y !== undefined) moveTo(x, y)
   if ([LEFT, MIDDLE, RIGHT].includes(button)) {
     let downEv = 0,
       upEv = 0
@@ -130,8 +115,8 @@ export function click(
 export function moveTo(
   x?: number,
   y?: number,
+  relative = false,
   _pause = config.PAUSE,
-  relative = false
 ) {
   failSafeCheck()
   if (!relative) {
@@ -162,8 +147,8 @@ export function moveTo(
 export function moveRel(
   xOffset = 0,
   yOffset = 0,
+  relative = false,
   _pause = config.PAUSE,
-  relative = false
 ) {
   failSafeCheck()
   if (!relative) {
