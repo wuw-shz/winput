@@ -40,7 +40,15 @@ export function up(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
   return keyboard
 }
 
-export function tap(
+export function tap(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
+  failSafeCheck()
+  down(key, false)
+  up(key, false)
+  if (_pause) handlePause(_pause)
+  return keyboard
+}
+
+export function repeatTap(
   key: keyof typeof KEYBOARD_MAPPING,
   repeat = 1,
   delay = 0.0,

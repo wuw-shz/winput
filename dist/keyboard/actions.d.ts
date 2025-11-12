@@ -13,7 +13,14 @@ export declare function up(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean)
     write: typeof write;
     listener: import("./listener").Listener;
 };
-export declare function tap(key: keyof typeof KEYBOARD_MAPPING, repeat?: number, delay?: number, _pause?: boolean): {
+export declare function tap(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean): {
+    down: typeof down;
+    up: typeof up;
+    tap: typeof tap;
+    write: typeof write;
+    listener: import("./listener").Listener;
+};
+export declare function repeatTap(key: keyof typeof KEYBOARD_MAPPING, repeat?: number, delay?: number, _pause?: boolean): {
     down: typeof down;
     up: typeof up;
     tap: typeof tap;
