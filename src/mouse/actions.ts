@@ -136,8 +136,8 @@ export function moveTo(
     moveRel(
       (x ?? currentX) - currentX,
       (y ?? currentY) - currentY,
+      true,
       _pause,
-      true
     )
   }
   if (_pause) handlePause(_pause)

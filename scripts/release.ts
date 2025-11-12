@@ -144,9 +144,7 @@ async function checkGitStatus() {
   const output = await new Response(proc.stdout).text()
 
   if (output.trim()) {
-    console.error(
-      `\n${c.brightRed}❌ Working directory is not clean!${c.reset}`
-    )
+    console.error(`\n${c.brightRed}✗ Working directory is not clean!${c.reset}`)
     console.error(
       `${c.yellow}   Please commit or stash changes first.${c.reset}\n`
     )
@@ -208,9 +206,9 @@ async function parseRepoInfo(): Promise<{
 
 function header(title: string) {
   const g = gradient(['#3b82f6', '#06b6d4'])
-  console.log(g('╭─────────────────────────╮'))
+  console.log(g('╭────────────────────────╮'))
   console.log(g(`│     ${title}      │`))
-  console.log(g('╰─────────────────────────╯\n'))
+  console.log(g('╰────────────────────────╯\n'))
 }
 
 function startSpinner(text: string) {
@@ -392,7 +390,7 @@ async function rollback(newVersion: string) {
 
     console.log(`${c.brightGreen}✓ Rollback completed${c.reset}`)
   } catch (error) {
-    console.error(`${c.brightRed}❌ Rollback failed:${c.reset}`, error)
+    console.error(`${c.brightRed}✗ Rollback failed:${c.reset}`, error)
     console.error(
       `${c.yellow}Original version: ${rollbackState.originalVersion}${c.reset}`
     )
@@ -430,7 +428,7 @@ async function release() {
       sameVersionRelease = true
     }
   } else {
-    console.error(`${c.brightRed}❌ Invalid version: ${versionArg}${c.reset}`)
+    console.error(`${c.brightRed}✗ Invalid version: ${versionArg}${c.reset}`)
     console.error(
       `${c.yellow}Expected: patch | minor | major | x.y.z${c.reset}\n`
     )
@@ -466,7 +464,6 @@ async function release() {
     // Build
     await withSpinner('Building project', async () => {
       await runCommand('bun', ['run', 'build'], { silent: true })
-      await Bun.sleep(100)
     })
 
     if (!sameVersionRelease) {
@@ -522,14 +519,14 @@ async function release() {
         rollbackState.published = true
       })
     } else {
-      console.log(`\n${c.yellow}⏭️  Skipping publish step${c.reset}`)
+      console.log(`\n${c.yellow}⭐️ Skipping publish step${c.reset}`)
     }
 
     console.log(
       `${c.bright}${c.bgGreen}${c.white} ✨ Release v${newVersion} completed! ${c.reset}\n`
     )
   } catch (error) {
-    console.error(`${c.brightRed}❌ Release failed:${c.reset}`, error)
+    console.error(`${c.brightRed}✗ Release failed:${c.reset}`, error)
     await rollback(newVersion)
     process.exit(1)
   }

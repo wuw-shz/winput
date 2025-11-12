@@ -4,6 +4,7 @@ declare class Keyboard {
     down: typeof actions.down;
     up: typeof actions.up;
     tap: typeof actions.tap;
+    repeatTap: typeof actions.repeatTap;
     write: typeof actions.write;
     listener: Listener;
 }

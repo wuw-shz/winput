@@ -5,6 +5,7 @@ class Keyboard {
   down = actions.down
   up = actions.up
   tap = actions.tap
+  repeatTap = actions.repeatTap
   write = actions.write
 
   listener = new Listener()

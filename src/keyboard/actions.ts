@@ -42,8 +42,8 @@ export function up(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
 
 export function tap(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
   failSafeCheck()
-  down(key, false)
-  up(key, false)
+  down(key, true)
+  up(key, true)
   if (_pause) handlePause(_pause)
   return keyboard
 }
@@ -56,8 +56,8 @@ export function repeatTap(
 ) {
   for (let i = 0; i < repeat; i++) {
     failSafeCheck()
-    down(key, false)
-    up(key, false)
+    down(key, true)
+    up(key, true)
     if (delay > 0) Bun.sleepSync(delay)
   }
   if (_pause) handlePause(_pause)

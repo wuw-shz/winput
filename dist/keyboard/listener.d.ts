@@ -7,7 +7,7 @@ export declare class Listener {
     once<K extends keyof KeyboardEvents>(event: K, callback: (eventData: KeyboardEvents[K]) => void): void;
     listen(callback: (eventData: KeyEvent) => void): void;
     private _emit;
-    startListener(interval?: number): Promise<void>;
-    stopListener(): void;
+    start(interval?: number): Promise<void>;
+    stop(): void;
 }
 //# sourceMappingURL=listener.d.ts.map

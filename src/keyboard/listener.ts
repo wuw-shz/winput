@@ -57,7 +57,7 @@ export class Listener {
     })
   }
 
-  async startListener(interval = 8) {
+  async start(interval = 8) {
     if (this.isRunning) return
     this.isRunning = true
     console.log('Keyboard listener started.')
@@ -122,7 +122,7 @@ export class Listener {
     console.log('Keyboard listener stopped.')
   }
 
-  stopListener() {
+  stop() {
     this.isRunning = false
   }
 }

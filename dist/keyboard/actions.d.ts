@@ -3,6 +3,7 @@ export declare function down(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolea
     down: typeof down;
     up: typeof up;
     tap: typeof tap;
+    repeatTap: typeof repeatTap;
     write: typeof write;
     listener: import("./listener").Listener;
 };
@@ -10,6 +11,7 @@ export declare function up(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean)
     down: typeof down;
     up: typeof up;
     tap: typeof tap;
+    repeatTap: typeof repeatTap;
     write: typeof write;
     listener: import("./listener").Listener;
 };
@@ -17,6 +19,7 @@ export declare function tap(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean
     down: typeof down;
     up: typeof up;
     tap: typeof tap;
+    repeatTap: typeof repeatTap;
     write: typeof write;
     listener: import("./listener").Listener;
 };
@@ -24,6 +27,7 @@ export declare function repeatTap(key: keyof typeof KEYBOARD_MAPPING, repeat?: n
     down: typeof down;
     up: typeof up;
     tap: typeof tap;
+    repeatTap: typeof repeatTap;
     write: typeof write;
     listener: import("./listener").Listener;
 };
@@ -31,6 +35,7 @@ export declare function write(message: string, delay?: number, _pause?: boolean)
     down: typeof down;
     up: typeof up;
     tap: typeof tap;
+    repeatTap: typeof repeatTap;
     write: typeof write;
     listener: import("./listener").Listener;
 };
