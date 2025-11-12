@@ -8,7 +8,7 @@ import {
   KEYEVENTF_KEYUP,
   KEYEVENTF_EXTENDEDKEY,
 } from '../core/constants'
-import * as keyboard from './index'
+import { keyboard } from './class'
 import { config } from '../config'
 
 export function down(

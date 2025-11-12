@@ -25,7 +25,7 @@ import {
   XBUTTON2,
 } from '../core/constants'
 import { LEFT, MIDDLE, MouseButton, RIGHT, X1, X2 } from './buttons'
-import * as mouse from './index'
+import { mouse } from './class'
 import { config } from '../config'
 
 export function down(button: MouseButton = LEFT, _pause = config.PAUSE) {
@@ -116,7 +116,7 @@ export function moveTo(
   x?: number,
   y?: number,
   relative = false,
-  _pause = config.PAUSE,
+  _pause = config.PAUSE
 ) {
   failSafeCheck()
   if (!relative) {
@@ -148,7 +148,7 @@ export function moveRel(
   xOffset = 0,
   yOffset = 0,
   relative = false,
-  _pause = config.PAUSE,
+  _pause = config.PAUSE
 ) {
   failSafeCheck()
   if (!relative) {
