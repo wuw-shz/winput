@@ -1,0 +1,24 @@
+export declare const MOUSEEVENTF_MOVE = 1;
+export declare const MOUSEEVENTF_ABSOLUTE = 32768;
+export declare const MOUSEEVENTF_LEFTDOWN = 2;
+export declare const MOUSEEVENTF_LEFTUP = 4;
+export declare const MOUSEEVENTF_LEFTCLICK: number;
+export declare const MOUSEEVENTF_RIGHTDOWN = 8;
+export declare const MOUSEEVENTF_RIGHTUP = 16;
+export declare const MOUSEEVENTF_RIGHTCLICK: number;
+export declare const MOUSEEVENTF_MIDDLEDOWN = 32;
+export declare const MOUSEEVENTF_MIDDLEUP = 64;
+export declare const MOUSEEVENTF_MIDDLECLICK: number;
+export declare const MOUSEEVENTF_XDOWN = 128;
+export declare const MOUSEEVENTF_XUP = 256;
+export declare const XBUTTON1 = 1;
+export declare const XBUTTON2 = 2;
+export declare const KEYEVENTF_EXTENDEDKEY = 1;
+export declare const KEYEVENTF_KEYUP = 2;
+export declare const KEYEVENTF_SCANCODE = 8;
+export declare const KEYEVENTF_UNICODE = 4;
+export declare const MAPVK_VK_TO_CHAR = 2;
+export declare const MAPVK_VK_TO_VSC = 0;
+export declare const MAPVK_VSC_TO_VK = 1;
+export declare const MAPVK_VSC_TO_VK_EX = 3;
+//# sourceMappingURL=constants.d.ts.map

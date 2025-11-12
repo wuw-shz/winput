@@ -9,11 +9,12 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "strictNullChecks": false,
     "skipLibCheck": true,
     "strict": true,
     "sourceMap": true
   },
   "include": [
     "src"
-  ]
+, "src/vk"  ]
 }

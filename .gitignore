@@ -2,3 +2,5 @@ node_modules
 *.log
 .DS_Store
 .env
+structure.md
+structure.ts
