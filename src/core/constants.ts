@@ -15,7 +15,7 @@ export const MOUSEEVENTF_MIDDLECLICK =
 export const MOUSEEVENTF_XDOWN = 0x0080
 export const MOUSEEVENTF_XUP = 0x0100
 
-// Mouse data for X buttons
+// Mouse data for X buttonsw
 export const XBUTTON1 = 0x0001
 export const XBUTTON2 = 0x0002
 
