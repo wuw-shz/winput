@@ -175,101 +175,11 @@ async function getLastTag(): Promise<string | null> {
   }
 }
 
-async function getCommitsSinceTag(tag: string | null): Promise<string[]> {
-  try {
-    const range = tag ? `${tag}..HEAD` : 'HEAD'
-    const output = await runCommandWithOutput('git', [
-      'log',
-      range,
-      '--pretty=format:%s',
-      '--no-merges',
-    ])
-    return output.split('\n').filter((line) => line.trim())
-  } catch {
-    return []
-  }
-}
-
 async function generateReleaseNotes(newVersion: string): Promise<string> {
   const lastTag = await getLastTag()
-  const commits = await getCommitsSinceTag(lastTag)
 
   let notes = `## Release v${newVersion}\n\n`
 
-  if (commits.length === 0) {
-    notes += '_No changes since last release_\n'
-    return notes
-  }
-
-  notes += `### Changes\n\n`
-
-  // Group commits by type
-  const features: string[] = []
-  const fixes: string[] = []
-  const docs: string[] = []
-  const chores: string[] = []
-  const others: string[] = []
-
-  commits.forEach((commit) => {
-    const lower = commit.toLowerCase()
-    if (lower.startsWith('feat:') || lower.startsWith('feature:')) {
-      features.push(commit.replace(/^(feat|feature):\s*/i, ''))
-    } else if (lower.startsWith('fix:')) {
-      fixes.push(commit.replace(/^fix:\s*/i, ''))
-    } else if (lower.startsWith('docs:')) {
-      docs.push(commit.replace(/^docs:\s*/i, ''))
-    } else if (
-      lower.startsWith('chore:') ||
-      lower.startsWith('build:') ||
-      lower.startsWith('ci:')
-    ) {
-      chores.push(commit.replace(/^(chore|build|ci):\s*/i, ''))
-    } else {
-      others.push(commit)
-    }
-  })
-
-  if (features.length > 0) {
-    notes += `#### ✨ Features\n`
-    features.forEach((feat) => {
-      notes += `- ${feat}\n`
-    })
-    notes += '\n'
-  }
-
-  if (fixes.length > 0) {
-    notes += `#### 🐛 Bug Fixes\n`
-    fixes.forEach((fix) => {
-      notes += `- ${fix}\n`
-    })
-    notes += '\n'
-  }
-
-  if (docs.length > 0) {
-    notes += `#### 📝 Documentation\n`
-    docs.forEach((doc) => {
-      notes += `- ${doc}\n`
-    })
-    notes += '\n'
-  }
-
-  if (chores.length > 0) {
-    notes += `#### 🔧 Maintenance\n`
-    chores.forEach((chore) => {
-      notes += `- ${chore}\n`
-    })
-    notes += '\n'
-  }
-
-  if (others.length > 0) {
-    notes += `#### Other Changes\n`
-    others.forEach((other) => {
-      notes += `- ${other}\n`
-    })
-    notes += '\n'
-  }
-
-  // Add workflow information
   notes += `---\n\n`
   notes += `**Full Changelog**: `
   if (lastTag) {
