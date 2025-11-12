@@ -21,4 +21,16 @@ export const user32 = dlopen(`user32.${suffix}`, {
     args: [FFIType.i32],
     returns: FFIType.i16,
   },
+  SetWindowsHookExW: {
+    args: [FFIType.i32, FFIType.ptr, FFIType.ptr, FFIType.u32],
+    returns: FFIType.ptr,
+  },
+  UnhookWindowsHookEx: {
+    args: [FFIType.ptr],
+    returns: FFIType.bool,
+  },
+  CallNextHookEx: {
+    args: [FFIType.ptr, FFIType.i32, FFIType.ptr, FFIType.ptr],
+    returns: FFIType.ptr,
+  },
 })
