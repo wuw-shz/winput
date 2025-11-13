@@ -175,22 +175,6 @@ async function getLastTag(): Promise<string | null> {
   }
 }
 
-async function generateReleaseNotes(newVersion: string): Promise<string> {
-  const lastTag = await getLastTag()
-
-  let notes = `## Release v${newVersion}\n\n`
-
-  notes += `---\n\n`
-  notes += `**Full Changelog**: `
-  if (lastTag) {
-    notes += `${lastTag}...v${newVersion}`
-  } else {
-    notes += `v${newVersion}`
-  }
-
-  return notes
-}
-
 async function getRemoteUrl(): Promise<string> {
   return await runCommandWithOutput('git', [
     'config',
@@ -275,15 +259,7 @@ async function autoCommitIfDirty() {
   await runCommand('bun', ['run', 'commit'], { silent: true })
 }
 
-async function createGitHubRelease(
-  owner: string,
-  repo: string,
-  version: string,
-  notes: string
-): Promise<void> {
-  const tempFile = join(PROJECT_ROOT, '.release-notes.tmp')
-  writeFileSync(tempFile, notes)
-
+async function createGitHubRelease(version: string): Promise<void> {
   try {
     await runCommand('gh', [
       'release',
@@ -291,14 +267,10 @@ async function createGitHubRelease(
       `v${version}`,
       '--title',
       `v${version}`,
-      '--notes-file',
-      tempFile,
+      ' --generate-notes',
     ])
-  } finally {
-    try {
-      await Bun.write(tempFile, '')
-      await runCommandWithOutput('rm', [tempFile])
-    } catch {}
+  } catch (err) {
+    throw err
   }
 }
 
@@ -428,8 +400,6 @@ async function release() {
 
   if (dryRun) {
     console.log(`\n${c.brightMagenta}Preview release notes:${c.reset}\n`)
-    const notes = await generateReleaseNotes(newVersion)
-    console.log(notes)
     console.log(`\n${c.brightCyan}✨ Dry run complete${c.reset}\n`)
     process.exit(0)
   }
@@ -487,13 +457,7 @@ async function release() {
     const repoInfo = await parseRepoInfo()
     if (repoInfo) {
       await withSpinner('Creating GitHub release with notes', async () => {
-        const notes = await generateReleaseNotes(newVersion)
-        await createGitHubRelease(
-          repoInfo.owner,
-          repoInfo.repo,
-          newVersion,
-          notes
-        )
+        await createGitHubRelease(newVersion)
       })
     } else {
       console.log(
