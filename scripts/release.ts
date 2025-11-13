@@ -436,7 +436,7 @@ async function release() {
     // Generate release
     const repoInfo = await parseRepoInfo()
     if (repoInfo) {
-      await withSpinner('Creating GitHub release with notes', async () => {
+      await withSpinner('Creating GitHub release with notes ', async () => {
         await createGitHubRelease(newVersion)
       })
     } else {
