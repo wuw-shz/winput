@@ -267,7 +267,7 @@ async function createGitHubRelease(version: string): Promise<void> {
       `v${version}`,
       '--title',
       `v${version}`,
-      ' --generate-notes',
+      '--generate-notes',
     ])
   } catch (err) {
     throw err
