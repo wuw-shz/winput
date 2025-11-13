@@ -49,7 +49,6 @@ interface RollbackState {
   originalVersion: string
   versionChanged: boolean
   commitCreated: boolean
-  tagCreated: boolean
   published: boolean
   pushed: boolean
 }
@@ -58,7 +57,6 @@ const rollbackState: RollbackState = {
   originalVersion: '',
   versionChanged: false,
   commitCreated: false,
-  tagCreated: false,
   published: false,
   pushed: false,
 }
@@ -290,14 +288,6 @@ async function rollback(newVersion: string) {
       })
     }
 
-    if (rollbackState.tagCreated) {
-      await withSpinner(`Deleting local tag v${newVersion}`, async () => {
-        await runCommand('git', ['tag', '-d', `v${newVersion}`], {
-          silent: true,
-        }).catch(() => {})
-      })
-    }
-
     if (rollbackState.pushed) {
       console.log(
         `${c.brightYellow}⚠️  Changes were pushed to remote${c.reset}`
@@ -435,16 +425,6 @@ async function release() {
       await autoCommitIfDirty()
       await checkGitStatus()
     })
-
-    // Tag
-    // await withSpinner(`Creating tag v${newVersion}`, async () => {
-    //   await runCommand(
-    //     'git',
-    //     ['tag', '-f', `v${newVersion}`, '-m', `Release v${newVersion}`],
-    //     { silent: true }
-    //   )
-    //   rollbackState.tagCreated = true
-    // })
 
     // Push
     await withSpinner('Pushing to remote', async () => {
