@@ -437,14 +437,14 @@ async function release() {
     })
 
     // Tag
-    await withSpinner(`Creating tag v${newVersion}`, async () => {
-      await runCommand(
-        'git',
-        ['tag', '-f', `v${newVersion}`, '-m', `Release v${newVersion}`],
-        { silent: true }
-      )
-      rollbackState.tagCreated = true
-    })
+    // await withSpinner(`Creating tag v${newVersion}`, async () => {
+    //   await runCommand(
+    //     'git',
+    //     ['tag', '-f', `v${newVersion}`, '-m', `Release v${newVersion}`],
+    //     { silent: true }
+    //   )
+    //   rollbackState.tagCreated = true
+    // })
 
     // Push
     await withSpinner('Pushing to remote', async () => {
