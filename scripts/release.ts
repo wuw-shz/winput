@@ -282,6 +282,14 @@ async function rollback(newVersion: string) {
       await runCommand('git', ['reset', '--hard', 'HEAD'], { silent: true })
     })
 
+    if (rollbackState.versionChanged) {
+      await withSpinner('Restoring original package.json version', async () => {
+        const pkg = readPackageJson()
+        pkg.version = rollbackState.originalVersion
+        writePackageJson(pkg)
+      })
+    }
+
     if (rollbackState.commitCreated) {
       await withSpinner('Removing release commit', async () => {
         await runCommand('git', ['reset', '--hard', 'HEAD~1'], { silent: true })
@@ -312,9 +320,7 @@ async function rollback(newVersion: string) {
           await runCommand(
             'gh',
             ['release', 'delete', `v${newVersion}`, '-y'],
-            {
-              silent: true,
-            }
+            { silent: true }
           ).catch(() => {})
         })
       } catch (error) {

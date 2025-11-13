@@ -1,13 +1,6 @@
 import { MouseEvents } from '../types/mouse';
-export declare class Listener {
-    private listeners;
-    isRunning: boolean;
-    on<K extends keyof MouseEvents>(event: K, callback: (eventData: MouseEvents[K]) => void): void;
-    off<K extends keyof MouseEvents>(event: K, callback: (eventData: MouseEvents[K]) => void): void;
-    once<K extends keyof MouseEvents>(event: K, callback: (eventData: MouseEvents[K]) => void): void;
-    listen(callback: (eventData: MouseEvents[keyof MouseEvents]) => void): void;
-    private _emit;
-    start(interval?: number): Promise<void>;
-    stop(): void;
+import { ListenerBase } from '../core/listener';
+export declare class Listener extends ListenerBase<MouseEvents> {
+    run(interval?: number): Promise<void>;
 }
 //# sourceMappingURL=listener.d.ts.map

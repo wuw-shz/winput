@@ -1,13 +1,6 @@
-import { KeyboardEvents, KeyEvent } from '../types/keyboard';
-export declare class Listener {
-    private listeners;
-    isRunning: boolean;
-    on<K extends keyof KeyboardEvents>(event: K, callback: (eventData: KeyboardEvents[K]) => void): void;
-    off<K extends keyof KeyboardEvents>(event: K, callback: (eventData: KeyboardEvents[K]) => void): void;
-    once<K extends keyof KeyboardEvents>(event: K, callback: (eventData: KeyboardEvents[K]) => void): void;
-    listen(callback: (eventData: KeyEvent) => void): void;
-    private _emit;
-    start(interval?: number): Promise<void>;
-    stop(): void;
+import { KeyboardEvents } from '../types/keyboard';
+import { ListenerBase } from '../core/listener';
+export declare class Listener extends ListenerBase<KeyboardEvents> {
+    run(interval?: number): Promise<void>;
 }
 //# sourceMappingURL=listener.d.ts.map

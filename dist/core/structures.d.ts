@@ -1,19 +1,8 @@
-export declare class MouseInput {
-    buffer: ArrayBuffer;
-    view: DataView;
-    constructor(dx?: number, dy?: number, mouseData?: number, dwFlags?: number, time?: number, dwExtraInfo?: bigint);
-}
-export declare class KeyboardInput {
-    buffer: ArrayBuffer;
-    view: DataView;
-    constructor(wVk?: number, wScan?: number, dwFlags?: number, time?: number, dwExtraInfo?: bigint);
-}
-export declare class Input {
-    buffer: ArrayBuffer;
-    view: DataView;
-    constructor(type: number, inputUnion: MouseInput | KeyboardInput);
-}
+export declare const is64Bit: boolean;
 export declare class FailSafeException extends Error {
     constructor(message: string);
 }
+export declare function buildMouseInputBuffer(dx?: number, dy?: number, mouseData?: number, dwFlags?: number, time?: number, dwExtraInfo?: bigint): Buffer;
+export declare function buildKeyboardInputBuffer(wVk?: number, wScan?: number, dwFlags?: number, time?: number, dwExtraInfo?: bigint): Buffer;
+export declare function buildInputBuffer(type: number, inputUnionBuf: Buffer): Buffer;
 //# sourceMappingURL=structures.d.ts.map

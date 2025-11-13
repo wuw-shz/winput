@@ -3,13 +3,17 @@ import { user32 } from './ffi-loader'
 import { FailSafeException } from './structures'
 import { config } from '../config'
 
+/**
+ * Throws FailSafeException if FAILSAFE is enabled and current cursor
+ * equals any configured FAILSAFE_POINTS.
+ */
 export function failSafeCheck(): void {
   if (config.FAILSAFE) {
     const pos = position()
     for (const point of config.FAILSAFE_POINTS) {
       if (pos[0] === point[0] && pos[1] === point[1]) {
         throw new FailSafeException(
-          'DirectInput fail-safe triggered from mouse moving to a corner of the screen. ' +
+          'fail-safe triggered from mouse moving to a corner of the screen. ' +
             'To disable this fail-safe, set config.FAILSAFE to false. DISABLING FAIL-SAFE IS NOT RECOMMENDED.'
         )
       }
@@ -17,12 +21,20 @@ export function failSafeCheck(): void {
   }
 }
 
+/**
+ * If shouldPause is truthy and PAUSE_DELAY > 0, sleep for PAUSE_DELAY milliseconds.
+ * Note: PAUSE_DELAY is in milliseconds.
+ */
 export function handlePause(shouldPause: boolean): void {
   if (shouldPause && config.PAUSE_DELAY > 0) {
     Bun.sleepSync(config.PAUSE_DELAY)
   }
 }
 
+/**
+ * Convert client coordinates to Windows absolute coordinates used by SendInput:
+ * 0..65535 range relative to display width/height.
+ */
 export function toWindowsCoordinates(x = 0, y = 0): [number, number] {
   const [displayWidth, displayHeight] = size()
   const windowsX = Math.round((x * 65535) / (displayWidth - 1))
@@ -35,12 +47,9 @@ export function toWindowsCoordinates(x = 0, y = 0): [number, number] {
 export function position(x?: number, y?: number): [number, number] {
   const pointBuffer = new ArrayBuffer(8)
   const pointView = new DataView(pointBuffer)
-
   user32.symbols.GetCursorPos(ptr(pointBuffer))
-
   const cursorX = pointView.getInt32(0, true)
   const cursorY = pointView.getInt32(4, true)
-
   return [x ?? cursorX, y ?? cursorY]
 }
 
