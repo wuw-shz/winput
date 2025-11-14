@@ -28,6 +28,64 @@ const MOUSEEVENTF_WHEEL = 0x0800
 const MOUSEEVENTF_HWHEEL = 0x1000
 const WHEEL_DELTA = 120
 
+const BUTTON_EVENT_MAP = {
+   [LEFT]: {
+      down: MOUSEEVENTF_LEFTDOWN,
+      up: MOUSEEVENTF_LEFTUP,
+      data: 0,
+   },
+   [MIDDLE]: {
+      down: MOUSEEVENTF_MIDDLEDOWN,
+      up: MOUSEEVENTF_MIDDLEUP,
+      data: 0,
+   },
+   [RIGHT]: {
+      down: MOUSEEVENTF_RIGHTDOWN,
+      up: MOUSEEVENTF_RIGHTUP,
+      data: 0,
+   },
+   [X1]: {
+      down: MOUSEEVENTF_XDOWN,
+      up: MOUSEEVENTF_XUP,
+      data: XBUTTON1,
+   },
+   [X2]: {
+      down: MOUSEEVENTF_XDOWN,
+      up: MOUSEEVENTF_XUP,
+      data: XBUTTON2,
+   },
+} as const
+
+function getButtonEvent(
+   button: MouseButton,
+   action: 'down' | 'up'
+): { event: number; mouseData: number } {
+   const mapping = BUTTON_EVENT_MAP[button]
+   if (!mapping) {
+      throw new Error(`Invalid button: ${button}`)
+   }
+   return { event: mapping[action], mouseData: mapping.data }
+}
+
+function validateCoordinates(x?: number, y?: number): void {
+   if (x !== undefined) {
+      if (!Number.isFinite(x)) {
+         throw new Error(`Invalid x coordinate: ${x}`)
+      }
+      if (x < 0) {
+         throw new Error(`x coordinate must be non-negative: ${x}`)
+      }
+   }
+
+   if (y !== undefined) {
+      if (!Number.isFinite(y)) {
+         throw new Error(`Invalid y coordinate: ${y}`)
+      }
+      if (y < 0) {
+         throw new Error(`y coordinate must be non-negative: ${y}`)
+      }
+   }
+}
 function sendMouseInput(
    dx: number,
    dy: number,
@@ -41,45 +99,27 @@ function sendMouseInput(
 }
 
 export function press(button: MouseButton = LEFT, _pause = config.PAUSE) {
-   let ev: number
-   let mouseData = 0
-   if (button === LEFT) ev = MOUSEEVENTF_LEFTDOWN
-   else if (button === MIDDLE) ev = MOUSEEVENTF_MIDDLEDOWN
-   else if (button === RIGHT) ev = MOUSEEVENTF_RIGHTDOWN
-   else if (button === X1) {
-      ev = MOUSEEVENTF_XDOWN
-      mouseData = XBUTTON1
-   } else if (button === X2) {
-      ev = MOUSEEVENTF_XDOWN
-      mouseData = XBUTTON2
-   } else
-      throw new Error(
-         `button must be "left", "middle", "right", "x1", or "x2", not ${button}`
-      )
-   sendMouseInput(0, 0, mouseData, ev, 0)
-   if (_pause) handlePause(_pause)
-   return mouse
+   try {
+      const { event, mouseData } = getButtonEvent(button, 'down')
+      sendMouseInput(0, 0, mouseData, event, 0)
+      if (_pause) handlePause(_pause)
+      return mouse
+   } catch (error) {
+      console.error('[Mouse Press Error]', error)
+      throw error
+   }
 }
 
 export function release(button: MouseButton = LEFT, _pause = config.PAUSE) {
-   let ev: number
-   let mouseData = 0
-   if (button === LEFT) ev = MOUSEEVENTF_LEFTUP
-   else if (button === MIDDLE) ev = MOUSEEVENTF_MIDDLEUP
-   else if (button === RIGHT) ev = MOUSEEVENTF_RIGHTUP
-   else if (button === X1) {
-      ev = MOUSEEVENTF_XUP
-      mouseData = XBUTTON1
-   } else if (button === X2) {
-      ev = MOUSEEVENTF_XUP
-      mouseData = XBUTTON2
-   } else
-      throw new Error(
-         `button must be "left", "middle", "right", "x1", or "x2", not ${button}`
-      )
-   sendMouseInput(0, 0, mouseData, ev, 0)
-   if (_pause) handlePause(_pause)
-   return mouse
+   try {
+      const { event, mouseData } = getButtonEvent(button, 'up')
+      sendMouseInput(0, 0, mouseData, event, 0)
+      if (_pause) handlePause(_pause)
+      return mouse
+   } catch (error) {
+      console.error('[Mouse Release Error]', error)
+      throw error
+   }
 }
 
 export function click(
@@ -118,24 +158,32 @@ export function moveTo(
    relative = false,
    _pause = config.PAUSE
 ) {
-   failSafeCheck()
-   if (x !== undefined && !Number.isFinite(x)) {
-      throw new Error(`Invalid x coordinate: ${x}`)
+   try {
+      failSafeCheck()
+      validateCoordinates(x, y)
+
+      if (!relative) {
+         const [finalX, finalY] = position(x, y)
+         const [winX, winY] = toWindowsCoordinates(finalX, finalY)
+         sendMouseInput(
+            winX,
+            winY,
+            0,
+            MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
+            0
+         )
+      } else {
+         const offsetX = x ?? 0
+         const offsetY = y ?? 0
+         moveRel(offsetX, offsetY, true, _pause)
+      }
+
+      if (_pause) handlePause(_pause)
+      return mouse
+   } catch (error) {
+      console.error('[Mouse MoveTo Error]', error)
+      throw error
    }
-   if (y !== undefined && !Number.isFinite(y)) {
-      throw new Error(`Invalid y coordinate: ${y}`)
-   }
-   if (!relative) {
-      const [finalX, finalY] = position(x, y)
-      const [winX, winY] = toWindowsCoordinates(finalX, finalY)
-      sendMouseInput(winX, winY, 0, MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, 0)
-   } else {
-      const offsetX = x ?? 0
-      const offsetY = y ?? 0
-      moveRel(offsetX, offsetY, true, _pause)
-   }
-   if (_pause) handlePause(_pause)
-   return mouse
 }
 
 export function moveRel(
