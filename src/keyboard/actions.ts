@@ -51,9 +51,8 @@ export function release(
 }
 
 export function tap(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
-  press(key)
-  release(key, false)
-  if (_pause) handlePause(_pause)
+  press(key, _pause)
+  release(key, _pause)
   return keyboard
 }
 
@@ -64,11 +63,10 @@ export function repeatTap(
   _pause = config.PAUSE
 ) {
   for (let i = 0; i < repeat; i++) {
-    press(key)
-    release(key, false)
+    press(key, _pause)
+    release(key, _pause)
     if (delay > 0) Bun.sleepSync(delay)
   }
-  if (_pause) handlePause(_pause)
   return keyboard
 }
 
@@ -76,20 +74,19 @@ export function write(message: string, delay = 0.0, _pause = config.PAUSE) {
   for (const c of message) {
     if (c >= 'A' && c <= 'Z') {
       const base = c.toLowerCase() as keyof typeof KEYBOARD_MAPPING
-      press('shift')
-      tap(base)
-      release('shift')
+      press('shift', _pause)
+      tap(base, _pause)
+      release('shift', _pause)
     } else if (SHIFT_KEYS.has(c)) {
       const base = SHIFT_KEYS.get(c)! as keyof typeof KEYBOARD_MAPPING
-      press('shift')
-      tap(base)
-      release('shift')
+      press('shift', _pause)
+      tap(base, _pause)
+      release('shift', _pause)
     } else {
-      tap(c as keyof typeof KEYBOARD_MAPPING)
+      tap(c as keyof typeof KEYBOARD_MAPPING, _pause)
     }
     if (delay > 0) Bun.sleepSync(delay)
   }
-  if (_pause) handlePause(_pause)
   return keyboard
 }
 
@@ -121,12 +118,11 @@ export function hotkey(
   _pause = config.PAUSE
 ) {
   for (const key of keys) {
-    press(key)
+    press(key, _pause)
   }
   for (let i = keys.length - 1; i >= 0; i--) {
-    release(keys[i])
+    release(keys[i], _pause)
   }
-  if (_pause) handlePause(_pause)
   return keyboard
 }
 
@@ -194,8 +190,7 @@ export function toggleKey(
   key: 'capslock' | 'numlock' | 'scrolllock',
   _pause = config.PAUSE
 ) {
-  tap(key, false)
-  if (_pause) handlePause(_pause)
+  tap(key, _pause)
   return keyboard
 }
 
@@ -240,9 +235,8 @@ export function releaseAll(_pause = config.PAUSE) {
   keysToRelease.push(...letters)
   for (const key of keysToRelease) {
     if (isPressed(key)) {
-      release(key, false)
+      release(key, _pause)
     }
   }
-  if (_pause) handlePause(_pause)
   return keyboard
 }
