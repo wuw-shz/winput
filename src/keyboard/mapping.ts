@@ -3,7 +3,7 @@ export interface KeyDef {
    extended?: boolean
 }
 
-export const KEYBOARD_MAPPING: Record<string, KeyDef> = {
+export const KEYBOARD_MAPPING = {
    // Letters (a-z)
    a: { scan: 0x1e },
    b: { scan: 0x30 },

@@ -26,7 +26,10 @@ export function press(
    key: keyof typeof KEYBOARD_MAPPING,
    _pause = config.PAUSE
 ) {
-   const { scan, extended } = KEYBOARD_MAPPING[key]
+   const { scan, extended } = KEYBOARD_MAPPING[key] as {
+      scan: number
+      extended?: boolean
+   }
    const flags = KEYEVENTF_SCANCODE
    sendKeyboardInput(scan, !!extended, flags)
    if (_pause) handlePause(_pause)
@@ -37,7 +40,10 @@ export function release(
    key: keyof typeof KEYBOARD_MAPPING,
    _pause = config.PAUSE
 ) {
-   const { scan, extended } = KEYBOARD_MAPPING[key]
+   const { scan, extended } = KEYBOARD_MAPPING[key] as {
+      scan: number
+      extended?: boolean
+   }
    const flags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
    sendKeyboardInput(scan, !!extended, flags)
    if (_pause) handlePause(_pause)
