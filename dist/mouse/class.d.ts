@@ -19,6 +19,8 @@ declare class Mouse {
     clickAt: typeof actions.clickAt;
     isAtPosition: typeof actions.isAtPosition;
     waitForPosition: typeof actions.waitForPosition;
+    waitForPress: typeof actions.waitForPress;
+    waitForRelease: typeof actions.waitForRelease;
     listener: Listener;
 }
 export declare const mouse: Mouse;

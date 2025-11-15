@@ -18,6 +18,8 @@ export declare function press(button?: MouseButton, _pause?: boolean): {
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function release(button?: MouseButton, _pause?: boolean): {
@@ -39,6 +41,8 @@ export declare function release(button?: MouseButton, _pause?: boolean): {
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function click(button?: Exclude<MouseButton, 'x1' | 'x2'>, repeat?: number, delay?: number, _pause?: boolean): {
@@ -60,6 +64,8 @@ export declare function click(button?: Exclude<MouseButton, 'x1' | 'x2'>, repeat
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function moveTo(x?: number, y?: number, relative?: boolean, _pause?: boolean): {
@@ -81,6 +87,8 @@ export declare function moveTo(x?: number, y?: number, relative?: boolean, _paus
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function moveRel(xOffset?: number, yOffset?: number, relative?: boolean, _pause?: boolean): {
@@ -102,6 +110,8 @@ export declare function moveRel(xOffset?: number, yOffset?: number, relative?: b
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare const move: typeof moveRel;
@@ -125,6 +135,8 @@ export declare function dragTo(x: number, y: number, button?: Exclude<MouseButto
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function dragRel(xOffset: number, yOffset: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, duration?: number, // seconds
@@ -147,6 +159,8 @@ _pause?: boolean): {
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function scroll(clicks: number, direction?: 'vertical' | 'horizontal', _pause?: boolean): {
@@ -168,6 +182,8 @@ export declare function scroll(clicks: number, direction?: 'vertical' | 'horizon
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 declare const easingFunctions: {
@@ -200,6 +216,8 @@ easing?: EasingFunction, _pause?: boolean): Promise<{
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 }>;
 export declare function hold(button: MouseButton, duration: number, // seconds
@@ -222,6 +240,8 @@ _pause?: boolean): {
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function clickAt(x: number, y: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, _pause?: boolean): {
@@ -243,6 +263,8 @@ export declare function clickAt(x: number, y: number, button?: Exclude<MouseButt
     clickAt: typeof clickAt;
     isAtPosition: typeof isAtPosition;
     waitForPosition: typeof waitForPosition;
+    waitForPress: typeof waitForPress;
+    waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
 export declare function isAtPosition(x: number, y: number, tolerance?: number): boolean;
