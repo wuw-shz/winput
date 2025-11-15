@@ -172,13 +172,13 @@ export function moveTo(
             MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
             0
          )
+         if (_pause) handlePause(_pause)
       } else {
          const offsetX = x ?? 0
          const offsetY = y ?? 0
          moveRel(offsetX, offsetY, true, _pause)
       }
 
-      if (_pause) handlePause(_pause)
       return mouse
    } catch (error) {
       console.error('[Mouse MoveTo Error]', error)
@@ -225,9 +225,9 @@ export function dragTo(
 ) {
    failSafeCheck()
    const [startX, startY] = position()
-   press(button, false)
+   press(button, _pause)
    if (duration <= 0) {
-      moveTo(x, y, false, false)
+      moveTo(x, y, false, _pause)
    } else {
       const steps = Math.max(10, Math.floor(duration * 100))
       const stepDelay = duration / steps
@@ -239,8 +239,7 @@ export function dragTo(
          Bun.sleepSync(Math.round(stepDelay * 1000))
       }
    }
-   release(button, false)
-   if (_pause) handlePause(_pause)
+   release(button, _pause)
    return mouse
 }
 
@@ -248,7 +247,7 @@ export function dragRel(
    xOffset: number,
    yOffset: number,
    button: Exclude<MouseButton, 'x1' | 'x2'> = LEFT,
-   duration = 0.5,
+   duration = 0.5, // seconds
    _pause = config.PAUSE
 ) {
    const [currentX, currentY] = position()
@@ -335,9 +334,8 @@ export function clickAt(
    _pause = config.PAUSE
 ) {
    failSafeCheck()
-   moveTo(x, y, false, true)
-   click(button, 1, 0, false)
-   if (_pause) handlePause(_pause)
+   moveTo(x, y, false, _pause)
+   click(button, 1, 0, _pause)
    return mouse
 }
 

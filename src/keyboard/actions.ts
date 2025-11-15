@@ -1,6 +1,6 @@
 import { user32 } from '../core/ffi-loader'
 import { buildKeyboardInputBuffer, buildInputBuffer } from '../core/structures'
-import { failSafeCheck, handlePause } from '../core/utils'
+import { handlePause } from '../core/utils'
 import { KEYBOARD_MAPPING, SHIFT_KEYS } from './mapping'
 import {
   KEYEVENTF_SCANCODE,
@@ -52,7 +52,7 @@ export function release(
 
 export function tap(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
   press(key)
-  release(key)
+  release(key, false)
   if (_pause) handlePause(_pause)
   return keyboard
 }
@@ -65,7 +65,7 @@ export function repeatTap(
 ) {
   for (let i = 0; i < repeat; i++) {
     press(key)
-    release(key)
+    release(key, false)
     if (delay > 0) Bun.sleepSync(delay)
   }
   if (_pause) handlePause(_pause)
@@ -87,7 +87,7 @@ export function write(message: string, delay = 0.0, _pause = config.PAUSE) {
     } else {
       tap(c as keyof typeof KEYBOARD_MAPPING)
     }
-    if (delay > 0) Bun.sleepSync(Math.round(delay * 1000))
+    if (delay > 0) Bun.sleepSync(delay)
   }
   if (_pause) handlePause(_pause)
   return keyboard

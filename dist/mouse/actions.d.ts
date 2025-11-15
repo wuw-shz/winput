@@ -127,7 +127,8 @@ export declare function dragTo(x: number, y: number, button?: Exclude<MouseButto
     waitForPosition: typeof waitForPosition;
     listener: import("./listener").Listener;
 };
-export declare function dragRel(xOffset: number, yOffset: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, duration?: number, _pause?: boolean): {
+export declare function dragRel(xOffset: number, yOffset: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, duration?: number, // seconds
+_pause?: boolean): {
     get position(): {
         x: number;
         y: number;

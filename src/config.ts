@@ -3,7 +3,7 @@ export const config = {
   FAILSAFE: false,
   FAILSAFE_POINTS: [[0, 0]] as [number, number][],
   // If true, actions will perform a tiny pause after each call (see PAUSE_DELAY).
-  PAUSE: false,
+  PAUSE: true,
   // pause delay in milliseconds used by handlePause
-  PAUSE_DELAY: 10, // ms
+  PAUSE_DELAY: 0, // ms
 }
