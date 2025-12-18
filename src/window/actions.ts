@@ -1,4 +1,4 @@
-import { user32, kernel32 } from "../core/ffi-loader";
+import { user32, kernel32, gdi32 } from "../core/ffi-loader";
 import { ptr, JSCallback } from "bun:ffi";
 import type {
   WindowInfo,
@@ -468,4 +468,254 @@ export function screenToClient(
     return { x: point[0], y: point[1] };
   }
   return null;
+}
+
+export function activateWindow(hwnd: number | bigint): boolean {
+  const h = BigInt(hwnd);
+  if (isWindowMinimized(h)) {
+    restoreWindow(h);
+  }
+  return setForeground(h);
+}
+
+export async function waitActiveWindow(
+  hwnd: number | bigint,
+  timeout?: number
+): Promise<boolean> {
+  const h = BigInt(hwnd);
+  return new Promise((resolve) => {
+    let elapsed = 0;
+    const id = setInterval(() => {
+      const active = getActiveWindow();
+      if (active && active.hwnd === h) {
+        clearInterval(id);
+        resolve(true);
+        return;
+      }
+      if (timeout && (elapsed += 100) >= timeout) {
+        clearInterval(id);
+        resolve(false);
+      }
+    }, 100);
+  });
+}
+
+export async function waitNotActiveWindow(
+  hwnd: number | bigint,
+  timeout?: number
+): Promise<boolean> {
+  const h = BigInt(hwnd);
+  return new Promise((resolve) => {
+    let elapsed = 0;
+    const id = setInterval(() => {
+      const active = getActiveWindow();
+      if (!active || active.hwnd !== h) {
+        clearInterval(id);
+        resolve(true);
+        return;
+      }
+      if (timeout && (elapsed += 100) >= timeout) {
+        clearInterval(id);
+        resolve(false);
+      }
+    }, 100);
+  });
+}
+
+export function killWindow(hwnd: number | bigint): boolean {
+  const h = BigInt(hwnd);
+  const pid = getWindowProcessId(h);
+  if (!pid) return false;
+
+  const PROCESS_TERMINATE = 0x0001;
+  const hProcess = kernel32.symbols.OpenProcess(PROCESS_TERMINATE, false, pid);
+
+  if (!hProcess) return false;
+
+  try {
+    return kernel32.symbols.TerminateProcess(hProcess, 1);
+  } finally {
+    kernel32.symbols.CloseHandle(hProcess);
+  }
+}
+
+const styles = {
+  WS_OVERLAPPED: 0x00000000,
+  WS_POPUP: 0x80000000,
+  WS_CHILD: 0x40000000,
+  WS_MINIMIZE: 0x20000000,
+  WS_VISIBLE: 0x10000000,
+  WS_DISABLED: 0x08000000,
+  WS_CLIPSIBLINGS: 0x04000000,
+  WS_CLIPCHILDREN: 0x02000000,
+  WS_MAXIMIZE: 0x01000000,
+  WS_CAPTION: 0x00c00000,
+  WS_BORDER: 0x00800000,
+  WS_DLGFRAME: 0x00400000,
+  WS_VSCROLL: 0x00200000,
+  WS_HSCROLL: 0x00100000,
+  WS_SYSMENU: 0x00080000,
+  WS_THICKFRAME: 0x00040000,
+  WS_GROUP: 0x00020000,
+  WS_TABSTOP: 0x00010000,
+  WS_MINIMIZEBOX: 0x00020000,
+  WS_MAXIMIZEBOX: 0x00010000,
+};
+
+export function getWindowStyle(hwnd: number | bigint): number {
+  return user32.symbols.GetWindowLongW(BigInt(hwnd), GWL_STYLE);
+}
+
+export function setWindowStyle(hwnd: number | bigint, style: keyof typeof styles): number {
+  return user32.symbols.SetWindowLongW(BigInt(hwnd), GWL_STYLE, styles[style]);
+}
+
+const exStyles = {
+    WS_EX_DLGMODALFRAME: 0x00000001,
+    WS_EX_NOPARENTNOTIFY: 0x00000004,
+    WS_EX_TOPMOST: 0x00000008,
+    WS_EX_ACCEPTFILES: 0x00000010,
+    WS_EX_TRANSPARENT: 0x00000020,
+    WS_EX_MDICHILD: 0x00000040,
+    WS_EX_TOOLWINDOW: 0x00000080,
+    WS_EX_WINDOWEDGE: 0x00000100,
+    WS_EX_CLIENTEDGE: 0x00000200,
+    WS_EX_CONTEXTHELP: 0x00000400,
+    WS_EX_RIGHT: 0x00001000,
+    WS_EX_LEFT: 0x00000000,
+    WS_EX_RTLREADING: 0x00002000,
+    WS_EX_LTRREADING: 0x00000000,
+    WS_EX_LEFTSCROLLBAR: 0x00004000,
+    WS_EX_RIGHTSCROLLBAR: 0x00000000,
+    WS_EX_CONTROLPARENT: 0x00010000,
+    WS_EX_STATICEDGE: 0x00020000,
+    WS_EX_APPWINDOW: 0x00040000,
+    WS_EX_LAYERED: 0x00080000,
+    WS_EX_NOINHERITLAYOUT: 0x00100000,
+    WS_EX_NOREDIRECTIONBITMAP: 0x00200000,
+    WS_EX_LAYOUTRTL: 0x00400000,
+    WS_EX_COMPOSITED: 0x02000000,
+    WS_EX_NOACTIVATE: 0x08000000,
+  };
+
+export function getWindowExStyle(hwnd: number | bigint): number {
+  return user32.symbols.GetWindowLongW(BigInt(hwnd), GWL_EXSTYLE);
+}
+
+export function setWindowExStyle(hwnd: number | bigint, style: keyof typeof exStyles): number {
+  return user32.symbols.SetWindowLongW(BigInt(hwnd), GWL_EXSTYLE, exStyles[style]);
+}
+
+export function getWindowMinMax(hwnd: number | bigint): number {
+  const h = BigInt(hwnd);
+  if (user32.symbols.IsIconic(h)) return -1;
+  if (user32.symbols.IsZoomed(h)) return 1;
+  return 0;
+}
+
+export function getWindowList(): bigint[] {
+  const list: bigint[] = [];
+  const callback = new JSCallback(
+    (hwnd: bigint, _lParam: bigint) => {
+      if (user32.symbols.IsWindowVisible(hwnd)) {
+        list.push(hwnd);
+      }
+      return true;
+    },
+    { args: ["u64", "i64"], returns: "bool" }
+  );
+
+  user32.symbols.EnumWindows(callback.ptr, 0);
+  callback.close();
+  return list;
+}
+
+export function getWindowCount(): number {
+  return getWindowList().length;
+}
+
+export function minimizeAll(): void {
+  const windows = getWindowList();
+  for (const hwnd of windows) {
+    user32.symbols.ShowWindow(hwnd, SW_MINIMIZE);
+  }
+}
+
+export function getWindowProcessName(hwnd: number | bigint): string {
+  const path = getWindowProcessPath(hwnd);
+  if (!path) return "";
+  const parts = path.split("\\");
+  return parts[parts.length - 1];
+}
+
+export function getWindowText(hwnd: number | bigint): string {
+  let text = getWindowTitle(hwnd);
+  const children = enumChildWindows(hwnd);
+  for (const child of children) {
+    const childText = getWindowTitle(child);
+    if (childText) text += "\r\n" + childText;
+  }
+  return text;
+}
+
+export function setWindowRegionRect(
+  hwnd: number | bigint,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  redraw = true
+): boolean {
+  const rgn = gdi32.symbols.CreateRectRgn(x, y, x + w, y + h);
+  if (!rgn) return false;
+  return user32.symbols.SetWindowRgn(BigInt(hwnd), rgn, redraw) !== 0;
+}
+
+export function setWindowRegionEllipse(
+  hwnd: number | bigint,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  redraw = true
+): boolean {
+  const rgn = gdi32.symbols.CreateEllipticRgn(x, y, x + w, y + h);
+  if (!rgn) return false;
+  return user32.symbols.SetWindowRgn(BigInt(hwnd), rgn, redraw) !== 0;
+}
+
+export function setWindowRegionRound(
+  hwnd: number | bigint,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rw: number,
+  rh: number,
+  redraw = true
+): boolean {
+  const rgn = gdi32.symbols.CreateRoundRectRgn(x, y, x + w, y + h, rw, rh);
+  if (!rgn) return false;
+  return user32.symbols.SetWindowRgn(BigInt(hwnd), rgn, redraw) !== 0;
+}
+
+export function setWindowRegionPolygon(
+  hwnd: number | bigint,
+  points: { x: number; y: number }[],
+  fillMode = 1, // ALTERNATE
+  redraw = true
+): boolean {
+  // Convert points to Int32Array [x, y, x, y...]
+  const buf = new Int32Array(points.length * 2);
+  for (let i = 0; i < points.length; i++) {
+    buf[i * 2] = points[i].x;
+    buf[i * 2 + 1] = points[i].y;
+  }
+  const rgn = gdi32.symbols.CreatePolygonRgn(ptr(buf), points.length, fillMode);
+  if (!rgn) return false;
+  return user32.symbols.SetWindowRgn(BigInt(hwnd), rgn, redraw) !== 0;
+}
+
+export function resetWindowRegion(hwnd: number | bigint, redraw = true): boolean {
+  return user32.symbols.SetWindowRgn(BigInt(hwnd), 0, redraw) !== 0;
 }

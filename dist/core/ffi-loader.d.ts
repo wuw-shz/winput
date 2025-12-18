@@ -188,6 +188,10 @@ export declare const user32: import("bun:ffi").Library<{
         args: (FFIType.int32_t | FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.uint64_t;
     };
+    SetWindowRgn: {
+        args: (FFIType.uint64_t | FFIType.bool)[];
+        returns: FFIType.int32_t;
+    };
 }>;
 export declare const gdi32: import("bun:ffi").Library<{
     GetPixel: {
@@ -246,6 +250,22 @@ export declare const gdi32: import("bun:ffi").Library<{
         args: (FFIType.int32_t | FFIType.ptr)[];
         returns: FFIType.int32_t;
     };
+    CreateRectRgn: {
+        args: FFIType.int32_t[];
+        returns: FFIType.uint64_t;
+    };
+    CreateEllipticRgn: {
+        args: FFIType.int32_t[];
+        returns: FFIType.uint64_t;
+    };
+    CreateRoundRectRgn: {
+        args: FFIType.int32_t[];
+        returns: FFIType.uint64_t;
+    };
+    CreatePolygonRgn: {
+        args: (FFIType.int32_t | FFIType.ptr)[];
+        returns: FFIType.uint64_t;
+    };
 }>;
 export declare const kernel32: import("bun:ffi").Library<{
     GetLastError: {
@@ -262,6 +282,10 @@ export declare const kernel32: import("bun:ffi").Library<{
     };
     QueryFullProcessImageNameW: {
         args: (FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.bool;
+    };
+    TerminateProcess: {
+        args: (FFIType.uint32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
 }>;

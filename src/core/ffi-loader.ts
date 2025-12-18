@@ -204,6 +204,10 @@ export const user32 = dlopen(`user32.${suffix}`, {
     ],
     returns: FFIType.u64,
   },
+  SetWindowRgn: {
+    args: [FFIType.u64, FFIType.u64, FFIType.bool],
+    returns: FFIType.int,
+  },
 });
 
 export const gdi32 = dlopen("gdi32.dll", {
@@ -274,6 +278,22 @@ export const gdi32 = dlopen("gdi32.dll", {
     args: [FFIType.ptr, FFIType.int, FFIType.ptr],
     returns: FFIType.int,
   },
+  CreateRectRgn: {
+    args: [FFIType.int, FFIType.int, FFIType.int, FFIType.int],
+    returns: FFIType.u64,
+  },
+  CreateEllipticRgn: {
+    args: [FFIType.int, FFIType.int, FFIType.int, FFIType.int],
+    returns: FFIType.u64,
+  },
+  CreateRoundRectRgn: {
+    args: [FFIType.int, FFIType.int, FFIType.int, FFIType.int, FFIType.int, FFIType.int],
+    returns: FFIType.u64,
+  },
+  CreatePolygonRgn: {
+    args: [FFIType.ptr, FFIType.int, FFIType.int],
+    returns: FFIType.u64,
+  },
 });
 
 export const kernel32 = dlopen(`kernel32.${suffix}`, {
@@ -291,6 +311,10 @@ export const kernel32 = dlopen(`kernel32.${suffix}`, {
   },
   QueryFullProcessImageNameW: {
     args: [FFIType.u64, FFIType.u32, FFIType.ptr, FFIType.ptr],
+    returns: FFIType.bool,
+  },
+  TerminateProcess: {
+    args: [FFIType.u64, FFIType.u32],
     returns: FFIType.bool,
   },
 });

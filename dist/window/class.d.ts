@@ -252,6 +252,141 @@ declare class Window {
      * @returns {{x: number, y: number} | null} Client coordinates
      */
     screenToClient: typeof actions.screenToClient;
+    /**
+     * Activate (focus and restore) a window.
+     * @param hwnd - Window handle
+     * @returns {boolean} True if successful
+     */
+    activate: typeof actions.activateWindow;
+    /**
+     * Wait for a window to become active.
+     * @param hwnd - Window handle
+     * @param timeout - Timeout in ms
+     * @returns {Promise<boolean>} True if activated
+     */
+    waitActive: typeof actions.waitActiveWindow;
+    /**
+     * Wait for a window to lose focus.
+     * @param hwnd - Window handle
+     * @param timeout - Timeout in ms
+     * @returns {Promise<boolean>} True if deactivated
+     */
+    waitNotActive: typeof actions.waitNotActiveWindow;
+    /**
+     * Force kill a window's process.
+     * @param hwnd - Window handle
+     * @returns {boolean} True if successful
+     */
+    kill: typeof actions.killWindow;
+    /**
+     * Get window style flags.
+     * @param hwnd - Window handle
+     * @returns {number} Style flags
+     */
+    getStyle: typeof actions.getWindowStyle;
+    /**
+     * Set window style flags.
+     * @param hwnd - Window handle
+     * @param style - New style flags
+     * @returns {number} Previous style
+     */
+    setStyle: typeof actions.setWindowStyle;
+    /**
+     * Get window extended style flags.
+     * @param hwnd - Window handle
+     * @returns {number} Extended style flags
+     */
+    getExStyle: typeof actions.getWindowExStyle;
+    /**
+     * Set window extended style flags.
+     * @param hwnd - Window handle
+     * @param style - New extended style flags
+     * @returns {number} Previous extended style
+     */
+    setExStyle: typeof actions.setWindowExStyle;
+    /**
+     * Get window min/max state.
+     * @param hwnd - Window handle
+     * @returns {number} -1 (min), 0 (normal), 1 (max)
+     */
+    getMinMax: typeof actions.getWindowMinMax;
+    /**
+     * Get list of all visible window handles.
+     * @returns {bigint[]} Array of handles
+     */
+    getList: typeof actions.getWindowList;
+    /**
+     * Get count of visible windows.
+     * @returns {number} Count
+     */
+    getCount: typeof actions.getWindowCount;
+    /**
+     * Minimize all windows.
+     */
+    minimizeAll: typeof actions.minimizeAll;
+    /**
+     * Get process name of window owner.
+     * @param hwnd - Window handle
+     * @returns {string} Process name (e.g. "notepad.exe")
+     */
+    getProcessName: typeof actions.getWindowProcessName;
+    /**
+     * Get all text from window and children.
+     * @param hwnd - Window handle
+     * @returns {string} Combined text
+     */
+    getText: typeof actions.getWindowText;
+    /**
+     * Set the region of a window (change its shape).
+     */
+    readonly setRegion: {
+        /**
+         * Set a rectangular region.
+         * @param hwnd - Window handle
+         * @param x - X coordinate
+         * @param y - Y coordinate
+         * @param w - Width
+         * @param h - Height
+         * @param redraw - Redraw window (default: true)
+         */
+        rect: typeof actions.setWindowRegionRect;
+        /**
+         * Set an elliptical region.
+         * @param hwnd - Window handle
+         * @param x - X coordinate
+         * @param y - Y coordinate
+         * @param w - Width
+         * @param h - Height
+         * @param redraw - Redraw window (default: true)
+         */
+        ellipse: typeof actions.setWindowRegionEllipse;
+        /**
+         * Set a rounded rectangular region.
+         * @param hwnd - Window handle
+         * @param x - X coordinate
+         * @param y - Y coordinate
+         * @param w - Width
+         * @param h - Height
+         * @param rw - Width of ellipse used for rounded corners
+         * @param rh - Height of ellipse used for rounded corners
+         * @param redraw - Redraw window (default: true)
+         */
+        round: typeof actions.setWindowRegionRound;
+        /**
+         * Set a polygonal region.
+         * @param hwnd - Window handle
+         * @param points - Array of points {x, y}
+         * @param fillMode - Fill mode (1=ALTERNATE, 2=WINDING) (default: 1)
+         * @param redraw - Redraw window (default: true)
+         */
+        polygon: typeof actions.setWindowRegionPolygon;
+        /**
+         * Reset the window region (restore normal shape).
+         * @param hwnd - Window handle
+         * @param redraw - Redraw window (default: true)
+         */
+        reset: typeof actions.resetWindowRegion;
+    };
 }
 export declare const window: Window;
 export {};

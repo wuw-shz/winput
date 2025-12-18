@@ -185,6 +185,25 @@ mouse.listener.run();
 | `screenToClient(hwnd, x, y)` | Convert screen coords to client coords. |
 | `enumWindows()` | List all visible windows. |
 | `enumChildWindows(parent)` | List all child controls of a window. |
+| `activate(hwnd)` | Activate (focus and restore) a window. |
+| `waitActive(hwnd, timeout?)` | Wait for a window to become active. |
+| `waitNotActive(hwnd, timeout?)` | Wait for a window to lose focus. |
+| `kill(hwnd)` | Force kill a window's process. |
+| `getStyle(hwnd)` | Get window style flags. |
+| `setStyle(hwnd, style)` | Set window style flags. |
+| `getExStyle(hwnd)` | Get window extended style flags. |
+| `setExStyle(hwnd, style)` | Set window extended style flags. |
+| `getMinMax(hwnd)` | Get window state (-1=min, 0=normal, 1=max). |
+| `getList()` | Get list of all visible window handles. |
+| `getCount()` | Get count of visible windows. |
+| `minimizeAll()` | Minimize all visible windows. |
+| `getProcessName(hwnd)` | Get process name (e.g., "notepad.exe"). |
+| `getText(hwnd)` | Get all text from window and children. |
+| `setRegion.rect(hwnd, x, y, w, h, redraw?)` | Set rectangular region for window. |
+| `setRegion.ellipse(hwnd, x, y, w, h, redraw?)` | Set elliptical region for window. |
+| `setRegion.round(hwnd, x, y, w, h, rw, rh, redraw?)` | Set rounded rectangular region. |
+| `setRegion.polygon(hwnd, points, fillMode?, redraw?)` | Set polygonal region. |
+| `setRegion.reset(hwnd, redraw?)` | Reset window region to normal. |
 
 ### Screen (`screen`) 🖥️
 
