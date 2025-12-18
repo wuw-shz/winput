@@ -1,4 +1,4 @@
-import { MouseButton } from './buttons';
+import { MouseButton } from "./buttons";
 export declare function press(button?: MouseButton, _pause?: boolean): {
     get position(): {
         x: number;
@@ -45,7 +45,7 @@ export declare function release(button?: MouseButton, _pause?: boolean): {
     waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
-export declare function click(button?: Exclude<MouseButton, 'x1' | 'x2'>, repeat?: number, delay?: number, _pause?: boolean): {
+export declare function click(button?: Exclude<MouseButton, "x1" | "x2">, repeat?: number, delay?: number, _pause?: boolean): {
     get position(): {
         x: number;
         y: number;
@@ -116,7 +116,7 @@ export declare function moveRel(xOffset?: number, yOffset?: number, relative?: b
 };
 export declare const move: typeof moveRel;
 export declare function isPressed(button: MouseButton): boolean;
-export declare function dragTo(x: number, y: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, duration?: number, _pause?: boolean): {
+export declare function dragTo(x: number, y: number, button?: Exclude<MouseButton, "x1" | "x2">, duration?: number, _pause?: boolean): {
     get position(): {
         x: number;
         y: number;
@@ -139,7 +139,7 @@ export declare function dragTo(x: number, y: number, button?: Exclude<MouseButto
     waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
-export declare function dragRel(xOffset: number, yOffset: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, duration?: number, // seconds
+export declare function dragRel(xOffset: number, yOffset: number, button?: Exclude<MouseButton, "x1" | "x2">, duration?: number, // seconds
 _pause?: boolean): {
     get position(): {
         x: number;
@@ -163,7 +163,7 @@ _pause?: boolean): {
     waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
-export declare function scroll(clicks: number, direction?: 'vertical' | 'horizontal', _pause?: boolean): {
+export declare function scroll(clicks: number, direction?: "vertical" | "horizontal", _pause?: boolean): {
     get position(): {
         x: number;
         y: number;
@@ -244,7 +244,7 @@ _pause?: boolean): {
     waitForRelease: typeof waitForRelease;
     listener: import("./listener").Listener;
 };
-export declare function clickAt(x: number, y: number, button?: Exclude<MouseButton, 'x1' | 'x2'>, _pause?: boolean): {
+export declare function clickAt(x: number, y: number, button?: Exclude<MouseButton, "x1" | "x2">, _pause?: boolean): {
     get position(): {
         x: number;
         y: number;

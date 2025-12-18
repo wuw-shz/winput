@@ -1,0 +1,47 @@
+import type { WindowInfo, ExtendedWindowInfo, Rect, Size } from "../types/windows";
+export declare function getActiveWindow(): WindowInfo | null;
+export declare function getWindowTitle(hwnd?: number | bigint): string;
+export declare function getWindowRect(hwnd: number | bigint): Rect | null;
+export declare function isWindowVisible(hwnd: number | bigint): boolean;
+export declare function setForeground(hwnd: number | bigint): boolean;
+export declare function findWindow(title: string): bigint | null;
+export declare function waitForWindow(title: string, timeout?: number): Promise<bigint | null>;
+export declare function getWindowProcessId(hwnd: number | bigint): number;
+export declare function getClassName(hwnd: number | bigint): string;
+export declare function isWindowMinimized(hwnd: number | bigint): boolean;
+export declare function isWindowMaximized(hwnd: number | bigint): boolean;
+export declare function minimizeWindow(hwnd: number | bigint): boolean;
+export declare function maximizeWindow(hwnd: number | bigint): boolean;
+export declare function restoreWindow(hwnd: number | bigint): boolean;
+export declare function showWindow(hwnd: number | bigint): boolean;
+export declare function hideWindow(hwnd: number | bigint): boolean;
+export declare function closeWindow(hwnd: number | bigint): boolean;
+export declare function moveWindow(hwnd: number | bigint, x: number, y: number, width: number, height: number, repaint?: boolean): boolean;
+export declare function centerWindow(hwnd: number | bigint): boolean;
+export declare function getClientRect(hwnd: number | bigint): Rect | null;
+export declare function getWindowSize(hwnd: number | bigint): Size | null;
+export declare function getClientSize(hwnd: number | bigint): Size | null;
+export declare function isWindow(hwnd: number | bigint): boolean;
+export declare function getExtendedWindowInfo(hwnd: number | bigint): ExtendedWindowInfo | null;
+export declare function waitForWindowClose(hwnd: number | bigint, timeout?: number): Promise<boolean>;
+export declare function focusWindow(hwnd: number | bigint, timeout?: number): Promise<boolean>;
+export declare function enumWindows(): ExtendedWindowInfo[];
+export declare function enumChildWindows(parentHwnd: number | bigint): bigint[];
+export declare function flashWindow(hwnd: number | bigint, invert?: boolean): boolean;
+export declare function setWindowOpacity(hwnd: number | bigint, opacity: number): boolean;
+export declare function setWindowTopmost(hwnd: number | bigint, enable: boolean): boolean;
+export declare function setWindowTitle(hwnd: number | bigint, title: string): boolean;
+export declare function setWindowEnabled(hwnd: number | bigint, enabled: boolean): boolean;
+export declare function redrawWindow(hwnd: number | bigint): boolean;
+export declare function moveWindowToBottom(hwnd: number | bigint): boolean;
+export declare function moveWindowToTop(hwnd: number | bigint): boolean;
+export declare function getWindowProcessPath(hwnd: number | bigint): string;
+export declare function clientToScreen(hwnd: number | bigint, x: number, y: number): {
+    x: number;
+    y: number;
+} | null;
+export declare function screenToClient(hwnd: number | bigint, x: number, y: number): {
+    x: number;
+    y: number;
+} | null;
+//# sourceMappingURL=actions.d.ts.map

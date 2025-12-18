@@ -1,354 +1,232 @@
 
-# 🎮 winput
+# winput 🚀
 
-> **Windows input automation library for Bun** - Control mouse and keyboard programmatically using Windows API through FFI.
-
+[![github](https://img.shields.io/github/v/release/wuw-shz/winput)](https://github.com/wuw-shz/winput/releases)
 [![npm version](https://img.shields.io/npm/v/winput.svg)](https://www.npmjs.com/package/winput)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat&logo=bun&logoColor=white)](https://bun.sh)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 
----
+> **winput** is a powerful Windows automation library for TypeScript and JavaScript / Bun, providing low-level access to keyboard, mouse, window, and screen controls via the Windows API.
 
-## ✨ Features
 
-- 🖱️ **Complete Mouse Control** - Move, click, drag, and scroll with pixel-perfect precision
-- ⌨️ **Full Keyboard Control** - Type text, press keys, and execute complex key combinations
-- 🖥️ **Windows & Screen Control** - Window management, pixel color detection, and screen analysis
-- 🛡️ **Built-in Fail-safe** - Safety mechanism to prevent runaway automation scripts
-- ⚡ **Blazing Fast** - Direct FFI calls to Windows API with zero overhead
-- 🎯 **Type-safe** - Full TypeScript support with comprehensive type definitions
-- 🪶 **Lightweight** - No dependencies, pure Bun implementation
+## Table of Contents
 
----
+- [Features](#features-)
+- [Requirements](#requirements-)
+- [Installation](#installation-)
+- [Quick Start](#quick-start-)
+- [API Reference](#api-reference-)
+  - [Keyboard](#keyboard-keyboard-)
+  - [Mouse](#mouse-mouse-)
+  - [Window](#window-window-)
+  - [Screen](#screen-screen-)
+  - [Utils](#utils-utils-)
+- [Contributing](#contributing-)
+- [License](#license-)
+- [Disclaimer](#disclaimer-)
 
-## 📦 Installation
+## Features ✨
 
+- ⌨️ **Keyboard Control**: Simulate keystrokes, combinations (hotkeys), type text, and monitor key states.
+- 🖱️ **Mouse Control**: Move cursor, click, drag, scroll, and smooth movements.
+- 🎣 **Input Hooks**: Global low-level keyboard and mouse hooks to listen for events even when your app is in the background.
+- 🪟 **Window Management**: Find, activate, move, resize, hide/show, and manipulate windows.
+- 🖥️ **Screen Analysis**: Capture screen, read pixel colors, search for pixels, and find images on the screen.
+- ⚡ **Performance**: Built with native Windows API calls for minimal latency.
+
+## Requirements 📋
+
+- **Operating System**: Windows 64-bit
+- **Runtime**: [Bun](https://bun.sh) (Recommended) or Node.js (Experimental/Limited support)
+
+## Installation 📦
+
+### Bun (Recommended)
 ```bash
 bun add winput
 ```
 
-Or install directly from GitHub:
-
+### npm
 ```bash
-bun add github:wuw-shz/winput
+npm install winput
 ```
 
-### Requirements
+## Quick Start ⚡
 
-- **OS:** Windows (uses Windows User32 API)
-- **Runtime:** Bun >= 1.0.0
-
----
-
-## 🚀 Quick Start
+### Basic Input Simulation
 
 ```typescript
-import { mouse, keyboard } from 'winput'
-
-// Move mouse to coordinates
-mouse.moveTo(100, 100)
-
-// Click at current position
-mouse.click()
-
-// Type some text
-keyboard.typewrite('Hello, World!')
-
-// Press keyboard shortcuts
-keyboard.press(['ctrl', 'c']) // Copy
-keyboard.press(['ctrl', 'v']) // Paste
-```
-
----
-
-## 📖 API Reference
-
-### 🖱️ Mouse (`mouse`)
-
-#### Movement
-
-##### `mouse.moveTo(x?, y?, relative?, pause?)`
-Move mouse cursor to absolute screen coordinates.
-
-```typescript
-mouse.moveTo(500, 500)           // Move to (500, 500)
-mouse.moveTo(500, 500, false)    // Move without relative (default)
-```
-
-##### `mouse.moveRel(xOffset?, yOffset?, relative?, pause?)`
-Move mouse cursor relative to current position.
-
-```typescript
-mouse.moveRel(10, -5)    // Move 10px right, 5px up
-```
-
-##### `mouse.smoothMoveTo(x, y, duration?, easing?, pause?)`
-Move the mouse cursor smoothly with easing animation.
-
-```typescript
-await mouse.smoothMoveTo(800, 600, 0.5, "easeOutQuad")
-```
-
-##### `mouse.position`
-Get current mouse cursor position.
-
-```typescript
-const { x, y } = mouse.position
-console.log(`Mouse at: ${x}, ${y}`)
-```
-
-#### Clicking
-
-##### `mouse.click(button?, repeat?, delay?, pause?)`
-Perform mouse click(s).
-
-```typescript
-mouse.click()                        // Left click
-mouse.click('right')                 // Right click
-mouse.click('left', 2)               // Double left click
-```
-
-##### `mouse.clickAt(x, y, button?, pause?)`
-Move to coordinates and click.
-
-```typescript
-mouse.clickAt(100, 100)              // Click at (100, 100)
-```
-
-##### `mouse.mouseDown(button?, pause?)` Note: Exposed as `mouse.press`
-Press and hold mouse button down.
-
-```typescript
-mouse.press('left')
-```
-
-##### `mouse.mouseUp(button?, pause?)` Note: Exposed as `mouse.release`
-Release mouse button.
-
-```typescript
-mouse.release('left')
-```
-
-#### Dragging & Scrolling
-
-##### `mouse.dragTo(x, y, button?, duration?, pause?)`
-Drag to absolute coordinates.
-
-```typescript
-mouse.dragTo(300, 300)
-```
-
-##### `mouse.scroll(clicks, direction?, pause?)`
-Scroll the mouse wheel.
-
-```typescript
-mouse.scroll(5)         // Scroll up 5 clicks
-mouse.scroll(-5)        // Scroll down 5 clicks
-mouse.scroll(10, "horizontal") // Horizontal scroll
-```
-
----
-
-### ⌨️ Keyboard (`keyboard`)
-
-##### `keyboard.press(keys, times?, interval?, pause?)`
-Press and release key(s).
-
-```typescript
-keyboard.press('a')
-keyboard.press(['ctrl', 's'])   // Ctrl+S
-keyboard.press('space', 5)      // Press space 5 times
-```
-
-##### `keyboard.typewrite(text, interval?, pause?)`
-Type a string of text.
-
-```typescript
-keyboard.typewrite('Hello World')
-keyboard.typewrite('Slowly', 0.1) // 100ms delay per char
-```
-
-##### `keyboard.down(key, pause?)`
-Press and hold key down.
-
-```typescript
-keyboard.down('shift')
-```
-
-##### `keyboard.up(key, pause?)`
-Release key.
-
-```typescript
-keyboard.up('shift')
-```
-
----
-
-### 🖥️ Windows & Screen (`windows`)
-
-#### Screen Operations (`windows.screen`)
-
-##### `windows.screen.getScreenSize()`
-Get screen dimensions.
-
-```typescript
-const { width, height } = windows.screen.getScreenSize()
-```
-
-##### `windows.screen.getPixel(x, y)`
-Get RGB color of a pixel.
-
-```typescript
-const color = windows.screen.getPixel(100, 100) // { r: 255, g: 255, b: 255 }
-```
-
-##### `windows.screen.waitForPixel(x, y, targetRGB, tolerance?, timeout?)`
-Wait for a pixel to match a color.
-
-```typescript
-await windows.screen.waitForPixel(100, 100, { r: 255, g: 0, b: 0 })
-```
-
-#### Window Management (`windows.window`)
-
-##### `windows.window.getActiveWindow()`
-Get information about the currently active window.
-
-```typescript
-const win = windows.window.getActiveWindow()
-console.log(win.title)
-```
-
-##### `windows.window.findWindow(title)`
-Find a window by exact title.
-
-```typescript
-const hwnd = windows.window.findWindow("Calculator")
-```
-
-##### `windows.window.waitForWindow(title, timeout?)`
-Wait for a window to appear.
-
-```typescript
-const hwnd = await windows.window.waitForWindow("Notepad")
-```
-
-##### `windows.window.setForeground(hwnd)`
-Bring a window to the front.
-
-```typescript
-windows.window.setForeground(hwnd)
-```
-
----
-
-### 🛡️ Fail-safe
-
-The fail-safe feature prevents runaway automation by monitoring mouse position. When the cursor moves to a fail-safe point (default: top-left corner `[0, 0]`), a `FailSafeException` is thrown.
-
-```typescript
-import { config, FailSafeException } from 'winput'
-
-// Modify fail-safe behavior
-config.FAILSAFE = true  // Enable (default)
-config.FAILSAFE_POINTS = [[0, 0]]  // Trigger corners
-
-try {
-  // Automation loop
-} catch (e) {
-  if (e instanceof FailSafeException) {
-    console.log('❌ Automation stopped by fail-safe!')
-  }
+import { keyboard, mouse, window } from "winput";
+
+// Keyboard
+keyboard.type("Hello World!");
+keyboard.hotkey(["ctrl", "s"]); // Save
+
+// Mouse
+mouse.moveTo(500, 500); // Move to coordinates
+mouse.click("left");    // Left click
+mouse.scroll(10);       // Scroll up
+
+// Window
+const notepad = window.findWindow("Notepad");
+if (notepad) {
+  window.activate(notepad);
 }
 ```
 
----
-
-## 📚 Examples
-
-### 🎨 Drawing Automation
+### Event Listeners (Hooks)
 
 ```typescript
-import { mouse } from 'winput'
+import { keyboard, mouse } from "winput";
 
-function drawSquare(x: number, y: number, size: number) {
-  mouse.moveTo(x, y)
-  mouse.press()       // Start drag
-  mouse.moveRel(size, 0)
-  mouse.moveRel(0, size)
-  mouse.moveRel(-size, 0)
-  mouse.moveRel(0, -size)
-  mouse.release()     // End drag
-}
+// Listen for key presses
+keyboard.listener.on("down", (e) => {
+  console.log(`Key pressed: ${e.name} (${e.vk_code})`);
+  if (e.name === "escape") process.exit(0);
+});
+
+// Listen for mouse clicks
+mouse.listener.on("down", (e) => {
+  console.log(`Mouse button ${e.button} at ${e.x}, ${e.y}`);
+});
+
+// Start listening
+keyboard.listener.run();
+mouse.listener.run();
 ```
 
-### 📝 Text Editor Automation
+## API Reference 📚
 
-```typescript
-import { keyboard, windows } from 'winput'
+### Keyboard (`keyboard`) ⌨️
 
-async function createNote() {
-  keyboard.press(['win', 'r'])
-  await Bun.sleep(500)
-  
-  keyboard.typewrite('notepad')
-  keyboard.press('enter')
-  
-  // Wait for Notepad window
-  await windows.window.waitForWindow("Untitled - Notepad")
-  
-  keyboard.typewrite('Meeting Notes\n')
-  keyboard.press(['ctrl', 's'])
-}
-```
+| Method | Description |
+| :--- | :--- |
+| `press(key)` | Press and hold a key. |
+| `release(key)` | Release a key. |
+| `tap(key)` | Press and release a key (keystroke). |
+| `repeatTap(key, count, delay?)` | Tap a key multiple times. |
+| `write(text, delay?)` | Type a string of text. |
+| `hotkey(keys)` | Press a combination of keys (e.g., `["ctrl", "c"]`). |
+| `hold(key, duration)` | Hold a key for a specific duration. |
+| `isPressed(key)` | Check if a key is currently physically pressed. |
+| `isAnyPressed(keys)` | Check if any of the specified keys are pressed. |
+| `areAllPressed(keys)` | Check if all of the specified keys are pressed. |
+| `waitForPress(key, timeout?)` | Wait for a specific key press. |
+| `waitForRelease(key, timeout?)` | Wait for a specific key release. |
+| `toggleKey(key)` | Toggle lock keys (Caps Lock, Num Lock, Scroll Lock). |
+| `getKeyState(key)` | Get the current state of a key (pressed/toggled). |
+| `releaseAll()` | Release all held keys (cleanup). |
+| `listener` | Access the event listener (see Hooks). |
 
----
+### Mouse (`mouse`) 🖱️
 
-## 🏗️ Project Structure
+| Method | Description |
+| :--- | :--- |
+| `moveTo(x, y)` | Move cursor to absolute coordinates. |
+| `moveRel(dx, dy)` | Move cursor relative to current position. |
+| `smoothMoveTo(x, y, duration?, easing?)` | Human-like smooth cursor movement. |
+| `click(button?)` | Click a mouse button ("left", "right", "middle"). |
+| `clickAt(x, y, button?)` | Move to position and click. |
+| `press(button)` | Press and hold a mouse button. |
+| `release(button)` | Release a mouse button. |
+| `hold(button, duration)` | Hold a mouse button for a specific duration. |
+| `dragTo(x, y, button?)` | Drag and drop to a location (absolute). |
+| `dragRel(dx, dy, button?)` | Drag and drop to a location (relative). |
+| `scroll(amount, direction?)` | Scroll wheel (vertical or horizontal). |
+| `get position` | Get current cursor `x, y` coordinates. |
+| `isPressed(button)` | Check if a mouse button is pressed. |
+| `isAtPosition(x, y, tolerance?)` | Check if mouse is at specific coordinates. |
+| `waitForPosition(x, y, timeout?)` | Wait for mouse to reach a position. |
+| `waitForPress(button, timeout?)` | Wait for a mouse button press. |
+| `waitForRelease(button, timeout?)` | Wait for a mouse button release. |
+| `listener` | Access the event listener (see Hooks). |
 
-```
-winput/
-├── src/
-│   ├── index.ts              # Exports
-│   ├── mouse/                # Mouse module
-│   ├── keyboard/             # Keyboard module
-│   ├── windows/              # Windows module (Screen & Window)
-│   ├── core/                 # Core functionality
-│   └── config.ts             # Configuration
-```
+### Window (`window`) 🪟
 
----
+| Method | Description |
+| :--- | :--- |
+| `getActiveWindow()` | Get handle and info of the currently focused window. |
+| `findWindow(title)` | Find a window handle by exact title. |
+| `waitForWindow(title, timeout?)` | Wait for a window to appear. |
+| `waitForWindowClose(hwnd, timeout?)` | Wait for a window to close. |
+| `getWindowTitle(hwnd)` | Get the title of a window. |
+| `getWindowRect(hwnd)` | Get window position and size (rect). |
+| `getClientRect(hwnd)` | Get window client area rect. |
+| `getWindowSize(hwnd)` | Get window width and height. |
+| `getClientSize(hwnd)` | Get window client area width and height. |
+| `getExtendedWindowInfo(hwnd)` | Get extended info (processId, class, etc.). |
+| `getProcessPath(hwnd)` | Get executable path of window owner. |
+| `getWindowProcessId(hwnd)` | Get the Process ID (PID) of the window. |
+| `getClassName(hwnd)` | Get the window class name. |
+| `isWindow(hwnd)` | Check if a window handle is valid. |
+| `isWindowVisible(hwnd)` | Check if a window is visible. |
+| `isWindowMinimized(hwnd)` | Check if a window is minimized. |
+| `isWindowMaximized(hwnd)` | Check if a window is maximized. |
+| `focusWindow(hwnd)` | Bring a window to foreground and focus it. |
+| `setForeground(hwnd)` | Set the window to the foreground. |
+| `moveWindow(hwnd, x, y, width, height)` | Move and resize a window. |
+| `minimizeWindow(hwnd)` | Minimize a window. |
+| `maximizeWindow(hwnd)` | Maximize a window. |
+| `restoreWindow(hwnd)` | Restore a minimized/maximized window. |
+| `showWindow(hwnd)` | Show a hidden window. |
+| `hideWindow(hwnd)` | Hide a window. |
+| `closeWindow(hwnd)` | Close a window. |
+| `flashWindow(hwnd)` | Flash the window caption/tray. |
+| `setOpacity(hwnd, opacity)` | Set window transparency (0.0 - 1.0). |
+| `setTopmost(hwnd, enable)` | Set "Always on Top" status. |
+| `setEnabled(hwnd, enabled)` | Enable/Disable input to the window. |
+| `setTitle(hwnd, title)` | Change the window title. |
+| `center(hwnd)` | Center the window on the screen. |
+| `moveToTop(hwnd)` | Bring window to top of Z-order. |
+| `moveToBottom(hwnd)` | Send window to bottom of Z-order. |
+| `redraw(hwnd)` | Request window repaint. |
+| `clientToScreen(hwnd, x, y)` | Convert client coords to screen coords. |
+| `screenToClient(hwnd, x, y)` | Convert screen coords to client coords. |
+| `enumWindows()` | List all visible windows. |
+| `enumChildWindows(parent)` | List all child controls of a window. |
 
-## 🤝 Contributing
+### Screen (`screen`) 🖥️
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
+| Method | Description |
+| :--- | :--- |
+| `getScreenSize()` | Get primary monitor resolution. |
+| `getMonitors()` | Get info about all connected monitors. |
+| `capture(x, y, w, h)` | Capture raw screen buffer from a region. |
+| `getPixel(x, y)` | Get RGB color of a specific pixel. |
+| `getPixelHex(x, y)` | Get Hex color of a specific pixel. |
+| `getMultiplePixels(positions)` | Get RGB colors for multiple positions. |
+| `checkPixel(x, y, color, tolerance?)` | Check if pixel matches color. |
+| `checkMultiplePixels(checks)` | Check if multiple pixels match targets. |
+| `waitForPixel(x, y, color, ...)` | Wait until a pixel becomes a color. |
+| `waitForAnyPixel(checks, ...)` | Wait for any pixel condition to match. |
+| `pixelSearch(rect, color, tolerance?)` | Find coordinates of a color in a region. |
+| `imageSearch(rect, imagePath, tolerance?)` | Find an image on the screen. |
 
-### Quick Start
+### Utils (`utils`) 🛠️
 
-```bash
-git clone https://github.com/wuw-shz/winput.git
-cd winput
-bun install
-bun test
-```
+| Method | Description |
+| :--- | :--- |
+| `rgbToHex(rgb)` | Convert RGB object to Hex string. |
+| `hexToRgb(hex)` | Convert Hex string to RGB object. |
+| `colorDistance(c1, c2)` | Calculate similarity between two colors. |
+| `isColorSimilar(c1, c2, tolerance)` | Check if two colors are similar. |
+| `pointInRect(point, rect)` | Check if a point is inside a rectangle. |
 
----
+## Contributing 🤝
 
-## 📄 License
+Contributions are welcome! Please follow these steps:
 
-MIT © [\@wuw-shz]
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/NewFeature`).
+3. Commit your changes (`git commit -m 'Add some NewFeature'`).
+4. Push to the branch (`git push origin feature/NewFeature`).
+5. Open a Pull Request.
 
----
+## License 📄
 
-## ⚠️ Disclaimer
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+
+## Disclaimer ⚠️
 
 This library is intended for automation, testing, and availability purposes. Please use responsibly.
-
----
-
-<p align="center">
-  <a href="https://bun.sh">
-    <img src="https://img.shields.io/badge/Powered%20by-Bun-000000?style=for-the-badge&logo=bun&logoColor=white" alt="Powered by Bun">
-  </a>
-</p>

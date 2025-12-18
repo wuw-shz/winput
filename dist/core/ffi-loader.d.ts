@@ -1,4 +1,4 @@
-import { FFIType } from 'bun:ffi';
+import { FFIType } from "bun:ffi";
 export declare const user32: import("bun:ffi").Library<{
     SendInput: {
         args: (FFIType.int32_t | FFIType.uint32_t | FFIType.ptr)[];
@@ -34,10 +34,10 @@ export declare const user32: import("bun:ffi").Library<{
     };
     GetDC: {
         args: FFIType.ptr[];
-        returns: FFIType.ptr;
+        returns: FFIType.uint64_t;
     };
     ReleaseDC: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.int32_t;
     };
     GetDesktopWindow: {
@@ -46,14 +46,14 @@ export declare const user32: import("bun:ffi").Library<{
     };
     GetForegroundWindow: {
         args: any[];
-        returns: FFIType.ptr;
+        returns: FFIType.uint64_t;
     };
     GetWindowTextW: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.int32_t;
     };
     GetWindowRect: {
-        args: FFIType.ptr[];
+        args: (FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.bool;
     };
     GetSystemMetrics: {
@@ -61,7 +61,7 @@ export declare const user32: import("bun:ffi").Library<{
         returns: FFIType.int32_t;
     };
     SetLayeredWindowAttributes: {
-        args: (FFIType.int8_t | FFIType.uint32_t | FFIType.ptr)[];
+        args: (FFIType.int8_t | FFIType.uint32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
     UpdateLayeredWindow: {
@@ -69,7 +69,11 @@ export declare const user32: import("bun:ffi").Library<{
         returns: FFIType.bool;
     };
     GetWindowLongW: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t)[];
+        returns: FFIType.int32_t;
+    };
+    SetWindowLongW: {
+        args: (FFIType.int32_t | FFIType.uint64_t)[];
         returns: FFIType.int32_t;
     };
     CreateWindowExW: {
@@ -77,117 +81,187 @@ export declare const user32: import("bun:ffi").Library<{
         returns: FFIType.ptr;
     };
     ShowWindow: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
     UpdateWindow: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     SetWindowPos: {
-        args: (FFIType.int32_t | FFIType.uint32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
     FindWindowA: {
         args: FFIType.ptr[];
-        returns: FFIType.ptr;
+        returns: FFIType.uint64_t;
     };
     FillRect: {
         args: FFIType.ptr[];
         returns: FFIType.int32_t;
     };
     IsWindow: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     SetForegroundWindow: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     IsWindowVisible: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     GetWindowThreadProcessId: {
-        args: FFIType.ptr[];
+        args: (FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.uint32_t;
     };
     MoveWindow: {
-        args: (FFIType.int32_t | FFIType.bool | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t | FFIType.bool)[];
         returns: FFIType.bool;
     };
     GetClientRect: {
-        args: FFIType.ptr[];
+        args: (FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.bool;
     };
     PostMessageA: {
-        args: (FFIType.uint32_t | FFIType.ptr)[];
+        args: (FFIType.uint32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
     GetClassNameA: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.int32_t;
     };
+    SetWindowTextW: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.bool;
+    };
+    EnableWindow: {
+        args: (FFIType.uint64_t | FFIType.bool)[];
+        returns: FFIType.bool;
+    };
+    RedrawWindow: {
+        args: (FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.bool;
+    };
+    ClientToScreen: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.bool;
+    };
+    ScreenToClient: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.bool;
+    };
     SendMessageA: {
-        args: (FFIType.uint32_t | FFIType.ptr)[];
+        args: (FFIType.uint32_t | FFIType.uint64_t)[];
         returns: FFIType.ptr;
     };
     IsIconic: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     IsZoomed: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
+    };
+    EnumWindows: {
+        args: (FFIType.int64_t | FFIType.function)[];
+        returns: FFIType.bool;
+    };
+    EnumChildWindows: {
+        args: (FFIType.int64_t | FFIType.uint64_t | FFIType.function)[];
+        returns: FFIType.bool;
+    };
+    FlashWindow: {
+        args: (FFIType.uint64_t | FFIType.bool)[];
+        returns: FFIType.bool;
+    };
+    PrintWindow: {
+        args: (FFIType.uint32_t | FFIType.uint64_t)[];
+        returns: FFIType.bool;
+    };
+    GetWindowDC: {
+        args: FFIType.uint64_t[];
+        returns: FFIType.uint64_t;
+    };
+    LoadImageW: {
+        args: (FFIType.int32_t | FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.uint64_t;
     };
 }>;
 export declare const gdi32: import("bun:ffi").Library<{
     GetPixel: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t)[];
         returns: FFIType.uint32_t;
     };
     CreatePen: {
         args: (FFIType.int32_t | FFIType.uint32_t)[];
-        returns: FFIType.ptr;
+        returns: FFIType.uint64_t;
     };
     SelectObject: {
-        args: FFIType.ptr[];
-        returns: FFIType.ptr;
+        args: FFIType.uint64_t[];
+        returns: FFIType.uint64_t;
     };
     MoveToEx: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.bool;
     };
     LineTo: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
     DeleteObject: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     CreateCompatibleDC: {
-        args: FFIType.ptr[];
-        returns: FFIType.ptr;
+        args: FFIType.uint64_t[];
+        returns: FFIType.uint64_t;
     };
     CreateDIBSection: {
         args: (FFIType.uint32_t | FFIType.ptr)[];
         returns: FFIType.ptr;
     };
     DeleteDC: {
-        args: FFIType.ptr[];
+        args: FFIType.uint64_t[];
         returns: FFIType.bool;
     };
     CreateSolidBrush: {
         args: FFIType.uint32_t[];
-        returns: FFIType.ptr;
+        returns: FFIType.uint64_t;
     };
     CreateCompatibleBitmap: {
-        args: (FFIType.int32_t | FFIType.ptr)[];
-        returns: FFIType.ptr;
+        args: (FFIType.int32_t | FFIType.uint64_t)[];
+        returns: FFIType.uint64_t;
     };
     BitBlt: {
-        args: (FFIType.int32_t | FFIType.uint32_t | FFIType.ptr)[];
+        args: (FFIType.int32_t | FFIType.uint32_t | FFIType.uint64_t)[];
+        returns: FFIType.bool;
+    };
+    GetDIBits: {
+        args: (FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GetObjectA: {
+        args: (FFIType.int32_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+}>;
+export declare const kernel32: import("bun:ffi").Library<{
+    GetLastError: {
+        args: any[];
+        returns: FFIType.uint32_t;
+    };
+    OpenProcess: {
+        args: (FFIType.uint32_t | FFIType.bool)[];
+        returns: FFIType.uint64_t;
+    };
+    CloseHandle: {
+        args: FFIType.uint64_t[];
+        returns: FFIType.bool;
+    };
+    QueryFullProcessImageNameW: {
+        args: (FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
         returns: FFIType.bool;
     };
 }>;

@@ -1,5 +1,5 @@
-import * as actions from './actions';
-import { Listener } from './listener';
+import * as actions from "./actions";
+import { Listener } from "./listener";
 /**
  * Mouse input controller for simulating mouse actions and monitoring mouse state.
  * Provides methods for clicking, moving, dragging, scrolling, and listening to mouse events.
