@@ -1,6 +1,6 @@
 import { MouseEvents } from '../types/mouse';
 import { ListenerBase } from '../core/listener';
 export declare class Listener extends ListenerBase<MouseEvents> {
-    run(interval?: number): Promise<void>;
+    protected run(interval?: number): Promise<void>;
 }
 //# sourceMappingURL=listener.d.ts.map

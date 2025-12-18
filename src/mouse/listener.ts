@@ -4,7 +4,7 @@ import { ptr } from 'bun:ffi'
 import { ListenerBase } from '../core/listener'
 
 export class Listener extends ListenerBase<MouseEvents> {
-   async run(interval = 8) {
+   protected async run(interval = 8) {
       console.log('Mouse listener started.')
       const pointBuffer = new ArrayBuffer(8)
       const pv = new DataView(pointBuffer)

@@ -34,7 +34,7 @@ const VK_TO_NAME: Record<number, keyof typeof KEYBOARD_MAPPING> = {
 }
 
 export class Listener extends ListenerBase<KeyboardEvents> {
-   async run(interval = 8) {
+   protected  async run(interval = 8) {
       console.log('Keyboard listener started.')
       const prev: boolean[] = new Array(256).fill(false)
       const vkList = Array.from({ length: 256 }, (_, i) => i)
