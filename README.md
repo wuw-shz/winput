@@ -21,6 +21,7 @@
   - [Mouse](#mouse-mouse-%EF%B8%8F)
   - [Window](#window-window-%EF%B8%8F)
   - [Screen](#screen-screen-%EF%B8%8F)
+  - [Image](#image-image-%EF%B8%8F)
   - [Utils](#utils-utils-%EF%B8%8F)
 - [Contributing](#contributing-)
 - [License](#license-)
@@ -33,7 +34,10 @@
 - 🎣 **Input Hooks**: Global low-level keyboard and mouse hooks to listen for events even when your app is in the background.
 - 🪟 **Window Management**: Find, activate, move, resize, hide/show, and manipulate windows.
 - 🖥️ **Screen Analysis**: Capture screen, read pixel colors, search for pixels, and find images on the screen.
+- 🖼️ **Image Processing**: Load, save, and process images (blur, sharpen, edges, etc.).
 - ⚡ **Performance**: Built with native Windows API calls for minimal latency.
+
+
 
 ## Requirements 📋
 
@@ -57,7 +61,7 @@ npm install winput
 ### Basic Input Simulation
 
 ```typescript
-import { keyboard, mouse, window } from "winput";
+import { keyboard, mouse, window, image } from "winput";
 
 // Keyboard
 keyboard.type("Hello World!");
@@ -72,6 +76,12 @@ mouse.scroll(10);       // Scroll up
 const notepad = window.findWindow("Notepad");
 if (notepad) {
   window.activate(notepad);
+}
+
+// Image Processing
+const img = await image.load("screenshot.png");
+if (img) {
+  img.grayscale().blur(2).save("processed.png");
 }
 ```
 
@@ -221,6 +231,32 @@ mouse.listener.run();
 | `waitForAnyPixel(checks, ...)` | Wait for any pixel condition to match. |
 | `pixelSearch(rect, color, tolerance?)` | Find coordinates of a color in a region. |
 | `imageSearch(rect, imagePath, tolerance?)` | Find an image on the screen. |
+
+### Image (`image`) 🖼️
+
+| Method | Description |
+| :--- | :--- |
+| `load(path)` | Load an image from file (returns `Promise<ImageProcessor>`). |
+| `save(path, format?)` | Save an image to file. |
+| `process(buffer)` | Create a processor from an image buffer. |
+
+#### ImageProcessor (Chainable)
+
+| Method | Description |
+| :--- | :--- |
+| `clone()` | Create a deep copy of the image. |
+| `grayscale()` | Convert to grayscale. |
+| `brightness(factor)` | Adjust brightness (-1.0 to 1.0). |
+| `contrast(factor)` | Adjust contrast (0.0 to Infinity). |
+| `blur(radius?)` | Apply Gaussian blur. |
+| `sharpen()` | Sharpen the image. |
+| `edges()` | Detect edges (Sobel). |
+| `dilate(pixels?)` | Morphological dilation. |
+| `erode(pixels?)` | Morphological erosion. |
+| `open(pixels?)` | Morphological opening (remove noise). |
+| `close(pixels?)` | Morphological closing (fill holes). |
+| `save(path?)` | Save the processed image. |
+| `toPixels()` | Convert to array of `[r, g, b, a]` pixels. |
 
 ### Utils (`utils`) 🛠️
 
