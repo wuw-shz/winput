@@ -702,10 +702,9 @@ export function setWindowRegionRound(
 export function setWindowRegionPolygon(
   hwnd: number | bigint,
   points: { x: number; y: number }[],
-  fillMode = 1, // ALTERNATE
+  fillMode = 1,
   redraw = true
 ): boolean {
-  // Convert points to Int32Array [x, y, x, y...]
   const buf = new Int32Array(points.length * 2);
   for (let i = 0; i < points.length; i++) {
     buf[i * 2] = points[i].x;

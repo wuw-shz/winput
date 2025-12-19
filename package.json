@@ -1,6 +1,6 @@
 {
   "name": "winput",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Windows input automation library for Bun - control mouse and keyboard programmatically",
   "type": "module",
   "main": "./dist/index.js",
@@ -74,9 +74,6 @@
   },
   "dependencies": {
     "@types/bun": "latest",
-    "@types/pngjs": "^6.0.5",
-    "bun": "latest",
-    "jimp": "^1.6.0",
-    "pngjs": "^7.0.0"
+    "bun": "latest"
   }
 }

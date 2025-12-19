@@ -317,4 +317,66 @@ export const kernel32 = dlopen(`kernel32.${suffix}`, {
     args: [FFIType.u64, FFIType.u32],
     returns: FFIType.bool,
   },
+  RtlMoveMemory: {
+    args: [FFIType.ptr, FFIType.u64, FFIType.u64],
+    returns: FFIType.void,
+  },
+});
+
+export const gdiplus = dlopen("gdiplus.dll", {
+  GdiplusStartup: {
+    args: [FFIType.ptr, FFIType.ptr, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdiplusShutdown: {
+    args: [FFIType.u64],
+    returns: FFIType.void,
+  },
+  GdipCreateBitmapFromFile: {
+    args: [FFIType.ptr, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipGetImageWidth: {
+    args: [FFIType.u64, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipGetImageHeight: {
+    args: [FFIType.u64, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipBitmapLockBits: {
+    args: [FFIType.u64, FFIType.ptr, FFIType.uint32_t, FFIType.int, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipBitmapUnlockBits: {
+    args: [FFIType.u64, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipDisposeImage: {
+    args: [FFIType.u64],
+    returns: FFIType.int,
+  },
+  GdipCreateBitmapFromScan0: {
+    args: [
+      FFIType.int,
+      FFIType.int,
+      FFIType.int,
+      FFIType.int,
+      FFIType.ptr,
+      FFIType.ptr,
+    ],
+    returns: FFIType.int,
+  },
+  GdipSaveImageToFile: {
+    args: [FFIType.u64, FFIType.ptr, FFIType.ptr, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipGetImageEncodersSize: {
+    args: [FFIType.ptr, FFIType.ptr],
+    returns: FFIType.int,
+  },
+  GdipGetImageEncoders: {
+    args: [FFIType.u32, FFIType.u32, FFIType.ptr],
+    returns: FFIType.int,
+  },
 });

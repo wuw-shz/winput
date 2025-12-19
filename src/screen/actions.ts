@@ -1,5 +1,5 @@
 import { user32, gdi32 } from "../core/ffi-loader";
-import { Jimp } from "jimp";
+import { loadImage } from "../image/actions";
 import { ptr, type Pointer } from "bun:ffi";
 import type { RGB, Point } from "../types/windows";
 import { hexToRgb, rgbToHex, isColorSimilar } from "../utils";
@@ -160,30 +160,6 @@ export function pixelSearch(
   }
 
   return null;
-}
-
-async function loadImage(path: string): Promise<{ width: number; height: number; data: Uint8Array } | null> {
-  try {
-    const image = await Jimp.read(path);
-    const width = image.bitmap.width;
-    const height = image.bitmap.height;
-    const data = image.bitmap.data;
-
-    const len = width * height * 4;
-    const buffer = new Uint8Array(len);
-
-    for (let i = 0; i < len; i += 4) {
-      buffer[i] = data[i + 2];
-      buffer[i + 1] = data[i + 1];
-      buffer[i + 2] = data[i];
-      buffer[i + 3] = data[i + 3];
-    }
-
-    return { width, height, data: buffer };
-  } catch (e) {
-    console.error(`Failed to load image: ${path}`, e);
-    return null;
-  }
 }
 
 export async function imageSearch(

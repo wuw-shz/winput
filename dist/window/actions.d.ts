@@ -113,8 +113,7 @@ export declare function setWindowRegionRound(hwnd: number | bigint, x: number, y
 export declare function setWindowRegionPolygon(hwnd: number | bigint, points: {
     x: number;
     y: number;
-}[], fillMode?: number, // ALTERNATE
-redraw?: boolean): boolean;
+}[], fillMode?: number, redraw?: boolean): boolean;
 export declare function resetWindowRegion(hwnd: number | bigint, redraw?: boolean): boolean;
 export {};
 //# sourceMappingURL=actions.d.ts.map

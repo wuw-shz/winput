@@ -288,5 +288,59 @@ export declare const kernel32: import("bun:ffi").Library<{
         args: (FFIType.uint32_t | FFIType.uint64_t)[];
         returns: FFIType.bool;
     };
+    RtlMoveMemory: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.void;
+    };
+}>;
+export declare const gdiplus: import("bun:ffi").Library<{
+    GdiplusStartup: {
+        args: FFIType.ptr[];
+        returns: FFIType.int32_t;
+    };
+    GdiplusShutdown: {
+        args: FFIType.uint64_t[];
+        returns: FFIType.void;
+    };
+    GdipCreateBitmapFromFile: {
+        args: FFIType.ptr[];
+        returns: FFIType.int32_t;
+    };
+    GdipGetImageWidth: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GdipGetImageHeight: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GdipBitmapLockBits: {
+        args: (FFIType.int32_t | FFIType.uint32_t | FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GdipBitmapUnlockBits: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GdipDisposeImage: {
+        args: FFIType.uint64_t[];
+        returns: FFIType.int32_t;
+    };
+    GdipCreateBitmapFromScan0: {
+        args: (FFIType.int32_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GdipSaveImageToFile: {
+        args: (FFIType.uint64_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
+    GdipGetImageEncodersSize: {
+        args: FFIType.ptr[];
+        returns: FFIType.int32_t;
+    };
+    GdipGetImageEncoders: {
+        args: (FFIType.uint32_t | FFIType.ptr)[];
+        returns: FFIType.int32_t;
+    };
 }>;
 //# sourceMappingURL=ffi-loader.d.ts.map
