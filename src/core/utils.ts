@@ -17,12 +17,6 @@ export function failSafeCheck(): void {
   }
 }
 
-export function handlePause(shouldPause: boolean): void {
-  if (shouldPause && config.PAUSE_DELAY > 0) {
-    Bun.sleepSync(config.PAUSE_DELAY * 1000);
-  }
-}
-
 export function toWindowsCoordinates(x = 0, y = 0): [number, number] {
   const [displayWidth, displayHeight] = [
     user32.symbols.GetSystemMetrics(0),

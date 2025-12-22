@@ -1,1 +1,1 @@
-{"version":3,"file":"listener.d.ts","sourceRoot":"","sources":["../../src/keyboard/listener.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,cAAc,EAAY,MAAM,mBAAmB,CAAA;AAE5D,OAAO,EAAE,YAAY,EAAE,MAAM,kBAAkB,CAAA;AAgC/C,qBAAa,QAAS,SAAQ,YAAY,CAAC,cAAc,CAAC;cACtC,GAAG,CAAC,QAAQ,SAAI;CA+DnC"}
+{"version":3,"file":"listener.d.ts","sourceRoot":"","sources":["../../src/keyboard/listener.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,cAAc,EAAiB,MAAM,mBAAmB,CAAC;AAElE,OAAO,EAAE,YAAY,EAAE,MAAM,kBAAkB,CAAC;AA4BhD,qBAAa,QAAS,SAAQ,YAAY,CAAC,cAAc,CAAC;cACxC,GAAG,CAAC,QAAQ,SAAI;CAmCjC"}

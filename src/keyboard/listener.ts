@@ -1,100 +1,68 @@
-import { user32 } from '../core/ffi-loader'
-import { KeyboardEvents, KeyEvent } from '../types/keyboard'
-import { KEYBOARD_MAPPING } from './mapping'
-import { ListenerBase } from '../core/listener'
+import { user32 } from "../core/ffi-loader";
+import { KeyboardEvents, KeyboardEvent } from "../types/keyboard";
+import { KEYBOARD_MAPPING, VK_TO_KEYNAME, VK_CODES, KeyName } from "./mapping";
+import { ListenerBase } from "../core/listener";
 
-const SCANCODE_TO_NAME: Record<number, string> = {}
-for (const [name, keydef] of Object.entries(KEYBOARD_MAPPING)) {
-   SCANCODE_TO_NAME[keydef.scan & 0xfff] = name
+const MOUSE_VK_CODES: Set<number> = new Set([
+  VK_CODES.LBUTTON,
+  VK_CODES.RBUTTON,
+  VK_CODES.MBUTTON,
+  VK_CODES.XBUTTON1,
+  VK_CODES.XBUTTON2,
+]);
+
+function getKeyNameFromVK(vk: number): KeyName | undefined {
+  if (VK_TO_KEYNAME[vk]) {
+    return VK_TO_KEYNAME[vk];
+  }
+
+  if (vk >= 0x30 && vk <= 0x39) {
+    return String.fromCharCode(vk) as KeyName;
+  }
+
+  if (vk >= 0x41 && vk <= 0x5a) {
+    return String.fromCharCode(vk).toLowerCase() as KeyName;
+  }
+
+  return undefined;
 }
-const MOUSE_VK_CODES = new Set([0x01, 0x02, 0x04, 0x05, 0x06])
-const VK_TO_NAME: Record<number, keyof typeof KEYBOARD_MAPPING> = {
-   // Function keys
-   112: 'f1',
-   113: 'f2',
-   114: 'f3',
-   115: 'f4',
-   116: 'f5',
-   117: 'f6',
-   118: 'f7',
-   119: 'f8',
-   120: 'f9',
-   121: 'f10',
-   122: 'f11',
-   123: 'f12',
-   // Common keys
-   13: 'enter',
-   16: 'shift',
-   17: 'ctrl',
-   18: 'alt',
-   9: 'tab',
-   20: 'capslock',
-   27: 'escape',
-   32: 'space',
-}
+
+const VK_LIST = Object.values(VK_CODES);
 
 export class Listener extends ListenerBase<KeyboardEvents> {
-   protected  async run(interval = 8) {
-      console.log('Keyboard listener started.')
-      const prev: boolean[] = new Array(256).fill(false)
-      const vkList = Array.from({ length: 256 }, (_, i) => i)
+  protected async run(interval = 8) {
+    if (interval < 1 || interval > 1000) {
+      console.warn(`Keyboard listener interval out of recommended range (1-1000ms): ${interval}ms`);
+    }
+    
+    const prev = new Map<number, boolean>();
 
-      while (this.isRunning) {
-         for (const vk of vkList) {
-            if (MOUSE_VK_CODES.has(vk)) continue
+    while (this.isRunning) {
+      for (const vk of VK_LIST) {
+        if (MOUSE_VK_CODES.has(vk)) continue;
 
-            const state = user32.symbols.GetAsyncKeyState(vk)
-            const isDown = (state & 0x8000) !== 0
-            const wasPressedSinceLast = (state & 0x0001) !== 0
+        const state = user32.symbols.GetAsyncKeyState(vk);
+        const isDown = (state & 0x8000) !== 0;
 
-            let name = VK_TO_NAME[vk] as keyof typeof KEYBOARD_MAPPING
-
-            if (!name) {
-               const scanCode = user32.symbols.MapVirtualKeyW(vk, 0)
-               name = SCANCODE_TO_NAME[
-                  scanCode
-               ] as keyof typeof KEYBOARD_MAPPING
-            }
-            if (!name) {
-               if (vk >= 0x30 && vk <= 0x39) {
-                  name = String.fromCharCode(
-                     vk
-                  ) as keyof typeof KEYBOARD_MAPPING
-               } else if (vk >= 0x41 && vk <= 0x5a) {
-                  name = String.fromCharCode(
-                     vk
-                  ).toLowerCase() as keyof typeof KEYBOARD_MAPPING
-               } else continue
-            }
-
-            if (isDown !== prev[vk]) {
-               prev[vk] = isDown
-               const ev: KeyEvent = {
-                  event: isDown ? 'down' : 'up',
-                  name,
-                  vk_code: vk,
-                  isKeyDown: isDown,
-               }
-               this._emit(isDown ? 'down' : 'up', ev)
-            } else if (!isDown && wasPressedSinceLast && !prev[vk]) {
-               const downEvent: KeyEvent = {
-                  event: 'down',
-                  name,
-                  vk_code: vk,
-                  isKeyDown: true,
-               }
-               const upEvent: KeyEvent = {
-                  event: 'up',
-                  name,
-                  vk_code: vk,
-                  isKeyDown: false,
-               }
-               this._emit('down', downEvent)
-               this._emit('up', upEvent)
-            }
-         }
-         await Bun.sleep(interval)
+        const prevState = prev.get(vk);
+        if (prevState !== isDown) {
+          prev.set(vk, isDown);
+          if (prevState !== undefined) {
+            const name = getKeyNameFromVK(vk);
+            if (!name) continue;
+            const scanCode = KEYBOARD_MAPPING[name].scan;
+            
+            const ev: KeyboardEvent = {
+              event: isDown ? "down" : "up",
+              key: name,
+              vk_code: vk,
+              scan_code: scanCode,
+            };
+            this._emit(isDown ? "down" : "up", ev);
+          }
+        }
       }
-      console.log('Keyboard listener stopped.')
-   }
+      await Bun.sleep(interval);
+    }
+  }
 }

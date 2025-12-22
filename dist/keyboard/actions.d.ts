@@ -1,5 +1,5 @@
-import { KEYBOARD_MAPPING } from './mapping';
-export declare function press(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean): {
+import { KeyName } from "./mapping";
+export declare function press(key: KeyName): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -17,7 +17,7 @@ export declare function press(key: keyof typeof KEYBOARD_MAPPING, _pause?: boole
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function release(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean): {
+export declare function release(key: KeyName): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -35,7 +35,7 @@ export declare function release(key: keyof typeof KEYBOARD_MAPPING, _pause?: boo
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function tap(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean): {
+export declare function tap(key: KeyName): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -53,8 +53,7 @@ export declare function tap(key: keyof typeof KEYBOARD_MAPPING, _pause?: boolean
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function repeatTap(key: keyof typeof KEYBOARD_MAPPING, repeat?: number, delay?: number, // milliseconds
-_pause?: boolean): {
+export declare function repeatTap(key: KeyName, repeat?: number, delay?: number): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -72,7 +71,7 @@ _pause?: boolean): {
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function write(message: string, delay?: number, _pause?: boolean): {
+export declare function write(message: string, delay?: number): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -90,10 +89,10 @@ export declare function write(message: string, delay?: number, _pause?: boolean)
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function isPressed(key: keyof typeof KEYBOARD_MAPPING): boolean;
-export declare function isAnyPressed(keys: (keyof typeof KEYBOARD_MAPPING)[]): boolean;
-export declare function areAllPressed(keys: (keyof typeof KEYBOARD_MAPPING)[]): boolean;
-export declare function hotkey(keys: (keyof typeof KEYBOARD_MAPPING)[], _pause?: boolean): {
+export declare function isPressed(key: KeyName): boolean;
+export declare function isAnyPressed(keys: KeyName[]): boolean;
+export declare function areAllPressed(keys: KeyName[]): boolean;
+export declare function hotkey(keys: KeyName[]): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -111,8 +110,7 @@ export declare function hotkey(keys: (keyof typeof KEYBOARD_MAPPING)[], _pause?:
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function hold(key: keyof typeof KEYBOARD_MAPPING, duration: number, // milliseconds
-_pause?: boolean): {
+export declare function hold(key: KeyName, duration: number): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -130,9 +128,9 @@ _pause?: boolean): {
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function waitForPress(key: keyof typeof KEYBOARD_MAPPING, timeout?: number): Promise<boolean>;
-export declare function waitForRelease(key: keyof typeof KEYBOARD_MAPPING, timeout?: number): Promise<boolean>;
-export declare function toggleKey(key: 'capslock' | 'numlock' | 'scrolllock', _pause?: boolean): {
+export declare function waitForPress(key: KeyName, timeout?: number): Promise<boolean>;
+export declare function waitForRelease(key: KeyName, timeout?: number): Promise<boolean>;
+export declare function toggleKey(key: "capslock" | "numlock" | "scrolllock"): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;
@@ -150,11 +148,11 @@ export declare function toggleKey(key: 'capslock' | 'numlock' | 'scrolllock', _p
     releaseAll: typeof releaseAll;
     listener: import("./listener").Listener;
 };
-export declare function getKeyState(key: keyof typeof KEYBOARD_MAPPING): {
+export declare function getKeyState(key: KeyName): {
     isPressed: boolean;
     isToggled: boolean;
 };
-export declare function releaseAll(_pause?: boolean): {
+export declare function releaseAll(): {
     press: typeof press;
     release: typeof release;
     tap: typeof tap;

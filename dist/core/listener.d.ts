@@ -1,39 +1,74 @@
+type OnEventProxy<EventMap extends Record<string, any>> = {
+    readonly [K in keyof EventMap]: (callback: (ev: EventMap[K]) => void) => void;
+};
+type OffEventProxy<EventMap extends Record<string, any>> = {
+    readonly [K in keyof EventMap]: (callback: (ev: EventMap[K]) => void) => void;
+};
+type OnceEventProxy<EventMap extends Record<string, any>> = {
+    readonly [K in keyof EventMap]: (callback: (ev: EventMap[K]) => void) => void;
+};
+type ListenProxy<EventMap extends Record<string, any>> = {
+    (callback: (ev: EventMap[keyof EventMap]) => void): void;
+};
 /**
  * Abstract base class for event listeners.
  * Provides a typed event emitter pattern with start/stop lifecycle management.
+ * Supports fluent property-based API with function call syntax.
  *
  * @template EventMap - Record mapping event names to their payload types
+ *
+ * @example
+ * // Fluent API - Function call (recommended)
+ * listener.on.eventname((ev) => console.log(ev))
+ * listener.off.eventname(callback)
+ * listener.once.eventname((ev) => console.log(ev))
  */
 export declare abstract class ListenerBase<EventMap extends Record<string, any>> {
     protected listeners: Map<keyof EventMap, Set<(ev: any) => void>>;
     /** Whether the listener is currently running */
     isRunning: boolean;
     private startPromise;
+    private _onProxy;
+    private _offProxy;
+    private _onceProxy;
+    private _listenProxy;
     /**
-     * Register an event handler.
-     * @param event - Event name to listen for
-     * @param cb - Callback function to invoke when event fires
+     * Fluent API for registering event handlers.
+     * @example listener.on.down((ev) => console.log(ev))
      */
-    on<K extends keyof EventMap>(event: K, cb: (ev: EventMap[K]) => void): void;
+    get on(): OnEventProxy<EventMap>;
     /**
-     * Remove an event handler.
-     * @param event - Event name to stop listening for
-     * @param cb - Callback function to remove
+     * Fluent API for removing event handlers.
+     * @example listener.off.down(callback)
      */
-    off<K extends keyof EventMap>(event: K, cb: (ev: EventMap[K]) => void): void;
+    get off(): OffEventProxy<EventMap>;
     /**
-     * Register a one-time event handler (automatically removed after first call).
-     * @param event - Event name to listen for
-     * @param cb - Callback function to invoke once
+     * Fluent API for registering one-time event handlers.
+     * @example listener.once.down((ev) => console.log(ev))
      */
-    once<K extends keyof EventMap>(event: K, cb: (ev: EventMap[K]) => void): void;
+    get once(): OnceEventProxy<EventMap>;
     /**
-     * Emit an event to all registered handlers.
-     * @param event - Event name to emit
-     * @param data - Event payload data
-     * @internal
+     * Register a general event handler that receives all events.
+     * @example listener.listen((ev) => console.log(ev.event, ev))
      */
-    protected _emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void;
+    get listen(): ListenProxy<EventMap>;
+    /**
+     * Remove a general event handler.
+     * @example listener.unlisten(callback)
+     */
+    unlisten(callback: (ev: EventMap[keyof EventMap]) => void): void;
+    /**
+     * Internal method to register an event handler.
+     */
+    private _on;
+    /**
+     * Internal method to remove an event handler.
+     */
+    private _off;
+    /**
+     * Internal method to register a one-time event handler.
+     */
+    private _once;
     /**
      * Start the listener loop (non-blocking, runs in background).
      * @param interval - Polling interval in milliseconds (default: 8)
@@ -45,11 +80,8 @@ export declare abstract class ListenerBase<EventMap extends Record<string, any>>
      * @returns Promise that resolves when listener has fully stopped
      */
     stop(): Promise<void>;
-    /**
-     * Abstract method to implement the polling loop.
-     * @param interval - Polling interval in milliseconds
-     * @internal
-     */
+    protected _emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void;
     protected abstract run(interval: number): Promise<void>;
 }
+export {};
 //# sourceMappingURL=listener.d.ts.map

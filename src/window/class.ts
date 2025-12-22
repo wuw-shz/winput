@@ -1,447 +1,784 @@
 import * as actions from "./actions";
 
-/**
- * Window management functions for controlling and querying windows.
- */
 class Window {
   /**
-   * Get information about the currently active (foreground) window.
-   * @returns {WindowInfo | null} Window info including hwnd, title, rect, isFullscreen
+   * Retrieves detailed information about the currently active (foreground) window.
+   * 
+   * @returns {WindowInfo | null} Object containing window handle, title, bounding rectangle, and fullscreen status, or null if no active window
+   * 
+   * @example
+   * const activeWin = window.getActiveWindow();
+   * if (activeWin) {
+   *   console.log(`Active window: ${activeWin.title}`);
+   *   console.log(`Position: ${activeWin.rect.left}, ${activeWin.rect.top}`);
+   * }
    */
   getActiveWindow = actions.getActiveWindow;
 
   /**
-   * Get the title of a window by its handle.
-   * @param hwnd - Window handle (optional, uses active window if not provided)
-   * @returns {string} Window title
+   * Retrieves the title text of a window.
+   * 
+   * @param hwnd - Window handle (bigint). If not provided, uses the currently active window
+   * @returns {string} The window's title text. Returns empty string if window has no title
+   * 
+   * @example
+   * const activeWin = window.getActiveWindow();
+   * if (activeWin) {
+   *   const title = window.getWindowTitle(activeWin.hwnd);
+   *   console.log(`Window title: ${title}`);
+   * }
    */
   getWindowTitle = actions.getWindowTitle;
 
   /**
-   * Get the bounding rectangle of a window.
-   * @param hwnd - Window handle
-   * @returns {Rect | null} Window rectangle (left, top, right, bottom)
+   * Retrieves the dimensions of the bounding rectangle of a window in screen coordinates.
+   * The rectangle includes the entire window, including title bar, borders, and scrollbars.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {Rect | null} Rectangle object with left, top, right, bottom properties in screen coordinates, or null if failed
+   * 
+   * @example
+   * const rect = window.getWindowRect(hwnd);
+   * if (rect) {
+   *   const width = rect.right - rect.left;
+   *   const height = rect.bottom - rect.top;
+   *   console.log(`Window size: ${width}x${height}`);
+   * }
    */
   getWindowRect = actions.getWindowRect;
 
   /**
-   * Get the client area rectangle of a window.
-   * @param hwnd - Window handle
-   * @returns {Rect | null} Client rectangle (left, top, right, bottom)
+   * Retrieves the dimensions of the client area of a window.
+   * The client area is the portion of the window where the application displays output, excluding borders and title bar.
+   * Coordinates are relative to the upper-left corner of the client area (always starts at 0,0).
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {Rect | null} Rectangle object with left, top, right, bottom properties in client coordinates, or null if failed
+   * 
+   * @example
+   * const clientRect = window.getClientRect(hwnd);
+   * if (clientRect) {
+   *   console.log(`Client area: ${clientRect.right}x${clientRect.bottom}`);
+   * }
    */
   getClientRect = actions.getClientRect;
 
   /**
-   * Get the size of a window.
-   * @param hwnd - Window handle
-   * @returns {Size | null} Window size (width, height)
+   * Gets the total size (width and height) of a window including borders and title bar.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {Size | null} Object with width and height properties in pixels, or null if failed
+   * 
+   * @example
+   * const size = window.getWindowSize(hwnd);
+   * if (size) {
+   *   console.log(`Window is ${size.width}x${size.height}`);
+   * }
    */
   getWindowSize = actions.getWindowSize;
 
   /**
-   * Get the client area size of a window.
-   * @param hwnd - Window handle
-   * @returns {Size | null} Client size (width, height)
+   * Gets the size of a window's client area (the drawable region, excluding borders and title bar).
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {Size | null} Object with width and height properties in pixels, or null if failed
+   * 
+   * @example
+   * const clientSize = window.getClientSize(hwnd);
+   * if (clientSize) {
+   *   console.log(`Drawable area: ${clientSize.width}x${clientSize.height}`);
+   * }
    */
   getClientSize = actions.getClientSize;
 
   /**
-   * Check if a window is visible.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if window is visible
+   * Determines whether a window is currently visible on screen.
+   * A window can have the visible style but still be obscured by other windows.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if the window has the visible style, false otherwise
    */
   isWindowVisible = actions.isWindowVisible;
 
   /**
-   * Check if a window is minimized.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if window is minimized
+   * Checks if a window is currently minimized to the taskbar.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window is minimized, false otherwise
    */
   isWindowMinimized = actions.isWindowMinimized;
 
   /**
-   * Check if a window is maximized.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if window is maximized
+   * Checks if a window is currently maximized to fill the screen.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window is maximized, false otherwise
    */
   isWindowMaximized = actions.isWindowMaximized;
 
   /**
-   * Check if a window handle is valid.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if window exists
+   * Determines whether a window handle is valid and the window still exists.
+   * Useful for checking if a window has been closed.
+   * 
+   * @param hwnd - Window handle (bigint) to validate
+   * @returns {boolean} True if the handle represents an existing window, false otherwise
+   * 
+   * @example
+   * if (!window.isWindow(hwnd)) {
+   *   console.log('Window has been closed');
+   * }
    */
   isWindow = actions.isWindow;
 
   /**
-   * Bring a window to the foreground.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Brings a window to the foreground and activates it.
+   * The window is restored if minimized.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if the window was successfully brought to foreground, false otherwise
+   * 
+   * @example
+   * const hwnd = window.findWindow('Notepad');
+   * if (hwnd) {
+   *   window.setForeground(hwnd);
+   * }
    */
   setForeground = actions.setForeground;
 
   /**
-   * Focus a window and wait for it to become the foreground window.
-   * @param hwnd - Window handle
-   * @param timeout - Maximum wait time in ms (default: 1000)
-   * @returns {Promise<boolean>} True if window became foreground
+   * Focuses a window and waits for it to become the active foreground window.
+   * Automatically restores the window if minimized before focusing.
+   * Polls every 100ms until timeout.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param timeout - Maximum time to wait in milliseconds (default: 1000)
+   * @returns {Promise<boolean>} Promise that resolves to true if window became foreground before timeout, false otherwise
+   * 
+   * @example
+   * const success = await window.focusWindow(hwnd, 2000);
+   * if (success) {
+   *   console.log('Window is now focused');
+   * }
    */
   focusWindow = actions.focusWindow;
 
   /**
-   * Find a window by its exact title.
-   * @param title - Window title to search for
-   * @returns {number | null} Window handle or null if not found
+   * Searches for a window by its exact title text (case-sensitive).
+   * Only searches top-level windows, not child windows.
+   * 
+   * @param title - Exact window title to search for
+   * @returns {number | null} Window handle (as number) if found, null otherwise
+   * 
+   * @example
+   * const notepad = window.findWindow('Untitled - Notepad');
+   * if (notepad) {
+   *   window.setForeground(BigInt(notepad));
+   * }
    */
   findWindow = actions.findWindow;
 
   /**
-   * Wait for a window with the specified title to appear.
-   * @param title - Window title to wait for
-   * @param timeout - Maximum wait time in ms (optional)
-   * @returns {Promise<number | null>} Window handle or null on timeout
+   * Waits for a window with the specified exact title to appear.
+   * Polls every 100ms checking for the window.
+   * 
+   * @param title - Exact window title to wait for
+   * @param timeout - Maximum time to wait in milliseconds. If not specified, waits indefinitely
+   * @returns {Promise<number | null>} Promise that resolves to window handle if found, null if timeout occurred
+   * 
+   * @example
+   * const hwnd = await window.waitForWindow('Calculator', 5000);
+   * if (hwnd) {
+   *   console.log('Calculator opened');
+   * }
    */
   waitForWindow = actions.waitForWindow;
 
   /**
-   * Wait for a window to close.
-   * @param hwnd - Window handle
-   * @param timeout - Maximum wait time in ms (optional)
-   * @returns {Promise<boolean>} True if window closed, false on timeout
+   * Waits for a window to close by monitoring its handle validity.
+   * Polls every 100ms checking if window still exists.
+   * 
+   * @param hwnd - Window handle (bigint) to monitor
+   * @param timeout - Maximum time to wait in milliseconds. If not specified, waits indefinitely
+   * @returns {Promise<boolean>} Promise that resolves to true if window closed, false if timeout occurred
+   * 
+   * @example
+   * const closed = await window.waitForWindowClose(hwnd, 3000);
+   * if (closed) {
+   *   console.log('Window closed successfully');
+   * }
    */
   waitForWindowClose = actions.waitForWindowClose;
 
   /**
-   * Get the process ID of a window.
-   * @param hwnd - Window handle
-   * @returns {number} Process ID
+   * Retrieves the identifier of the process that created the window.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {number} Process ID (PID)
+   * 
+   * @example
+   * const pid = window.getWindowProcessId(hwnd);
+   * console.log(`Window belongs to process: ${pid}`);
    */
   getWindowProcessId = actions.getWindowProcessId;
 
   /**
-   * Get the class name of a window.
-   * @param hwnd - Window handle
+   * Retrieves the name of the class to which the window belongs.
+   * Every window is created from a window class that defines window behavior.
+   * 
+   * @param hwnd - Window handle (bigint)
    * @returns {string} Window class name
+   * 
+   * @example
+   * const className = window.getClassName(hwnd);
+   * console.log(`Window class: ${className}`);
    */
   getClassName = actions.getClassName;
 
   /**
-   * Get extended information about a window.
-   * @param hwnd - Window handle
-   * @returns {ExtendedWindowInfo | null} Extended window info including processId, className, states
+   * Retrieves comprehensive information about a window in a single call.
+   * Includes handle, title, rectangle, process ID, class name, and various state flags.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {ExtendedWindowInfo | null} Object containing hwnd, title, rect, processId, className, and state booleans (isVisible, isMinimized, isMaximized, isFullscreen), or null if failed
+   * 
+   * @example
+   * const info = window.getExtendedWindowInfo(hwnd);
+   * if (info) {
+   *   console.log(`${info.title} - PID: ${info.processId}`);
+   *   console.log(`Visible: ${info.isVisible}, Minimized: ${info.isMinimized}`);
+   * }
    */
   getExtendedWindowInfo = actions.getExtendedWindowInfo;
 
   /**
-   * Minimize a window.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Minimizes a window to the taskbar.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window was successfully minimized, false otherwise
+   * 
+   * @example
+   * window.minimizeWindow(hwnd);
    */
   minimizeWindow = actions.minimizeWindow;
 
   /**
-   * Maximize a window.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Maximizes a window to fill the entire screen (excluding taskbar).
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window was successfully maximized, false otherwise
+   * 
+   * @example
+   * window.maximizeWindow(hwnd);
    */
   maximizeWindow = actions.maximizeWindow;
 
   /**
-   * Restore a window from minimized or maximized state.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Restores a window to its normal size and position from minimized or maximized state.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window was successfully restored, false otherwise
+   * 
+   * @example
+   * window.restoreWindow(hwnd);
    */
   restoreWindow = actions.restoreWindow;
 
   /**
-   * Show a hidden window.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Makes a hidden window visible without activating it.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window was successfully shown, false otherwise
    */
   showWindow = actions.showWindow;
 
   /**
-   * Hide a window.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Hides a window by setting its visibility to hidden.
+   * The window is not destroyed and can be shown again later.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window was successfully hidden, false otherwise
+   * 
+   * @example
+   * window.hideWindow(hwnd); // Window is hidden but still exists
    */
   hideWindow = actions.hideWindow;
 
   /**
-   * Close a window by sending WM_CLOSE message.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if message was sent
+   * Closes a window by sending a WM_CLOSE message.
+   * This allows the application to prompt the user to save changes.
+   * Does not guarantee the window will close (application may cancel).
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if the message was successfully sent, false otherwise
+   * 
+   * @example
+   * window.closeWindow(hwnd);
+   * // Wait to verify closure
+   * await window.waitForWindowClose(hwnd, 2000);
    */
   closeWindow = actions.closeWindow;
 
   /**
-   * Move and/or resize a window.
-   * @param hwnd - Window handle
-   * @param x - New X position
-   * @param y - New Y position
-   * @param width - New width
-   * @param height - New height
-   * @param repaint - Whether to repaint after moving (default: true)
-   * @returns {boolean} True if successful
+   * Changes the position and dimensions of a window.
+   * For top-level windows, position is relative to the screen. For child windows, relative to parent's client area.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param x - New X coordinate of the window's upper-left corner in pixels
+   * @param y - New Y coordinate of the window's upper-left corner in pixels
+   * @param width - New width of the window in pixels
+   * @param height - New height of the window in pixels
+   * @param repaint - Whether to repaint the window after moving (default: true)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * // Move window to (100, 100) and resize to 800x600
+   * window.moveWindow(hwnd, 100, 100, 800, 600);
    */
   moveWindow = actions.moveWindow;
 
   /**
-   * Enumerate all visible windows.
-   * @returns {ExtendedWindowInfo[]} Array of window info
+   * Enumerates all top-level visible windows on the desktop.
+   * Returns extended information for each window.
+   * 
+   * @returns {ExtendedWindowInfo[]} Array of window information objects
+   * 
+   * @example
+   * const windows = window.enumWindows();
+   * windows.forEach(win => {
+   *   console.log(`${win.title} (${win.className})`);
+   * });
    */
   enumWindows = actions.enumWindows;
 
   /**
-   * Enumerate child windows of a parent window.
-   * @param parentHwnd - Parent window handle
-   * @returns {number[]} Array of child window handles
+   * Enumerates all child windows belonging to a parent window.
+   * Child windows are controls like buttons, text boxes, etc.
+   * 
+   * @param parentHwnd - Parent window handle (bigint)
+   * @returns {number[]} Array of child window handles (as numbers)
+   * 
+   * @example
+   * const children = window.enumChildWindows(parentHwnd);
+   * console.log(`Found ${children.length} child windows`);
    */
   enumChildWindows = actions.enumChildWindows;
 
   /**
-   * Flash the window to attract attention.
-   * @param hwnd - Window handle
-   * @param invert - Whether to invert the caption (default: true)
-   * @returns {boolean} True if successful
+   * Flashes the window's title bar and taskbar button to attract user attention.
+   * The window flashes from the active state to the inactive state once.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param invert - Whether to invert the window caption (default: true)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.flashWindow(hwnd); // Flash to get user's attention
    */
   flashWindow = actions.flashWindow;
 
   /**
-   * Set the opacity of a window (makes it layered).
-   * @param hwnd - Window handle
-   * @param opacity - Opacity from 0.0 (transparent) to 1.0 (opaque)
-   * @returns {boolean} True if successful
+   * Sets the opacity (alpha transparency) of a window.
+   * Automatically converts the window to a layered window if needed.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param opacity - Opacity value from 0.0 (fully transparent) to 1.0 (fully opaque)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.setOpacity(hwnd, 0.5); // Make window 50% transparent
+   * window.setOpacity(hwnd, 1.0); // Make window fully opaque
    */
   setOpacity = actions.setWindowOpacity;
 
   /**
-   * Set the window to always be on top.
-   * @param hwnd - Window handle
-   * @param enable - True to enable topmost, false to disable
-   * @returns {boolean} True if successful
+   * Sets or removes a window's topmost status.
+   * Topmost windows appear above all non-topmost windows, even when deactivated.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param enable - True to make window always on top, false to remove topmost status
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.setTopmost(hwnd, true);  // Always on top
+   * window.setTopmost(hwnd, false); // Normal behavior
    */
   setTopmost = actions.setWindowTopmost;
 
   /**
-   * Center the window on the primary screen.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Centers a window on the primary screen.
+   * Calculates center position based on screen size and window dimensions.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if window was successfully centered, false otherwise
+   * 
+   * @example
+   * window.center(hwnd);
    */
   center = actions.centerWindow;
 
   /**
-   * Set the title of the window.
-   * @param hwnd - Window handle
-   * @param title - New title
-   * @returns {boolean} True if successful
+   * Changes the text of a window's title bar.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param title - New title text to set
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.setTitle(hwnd, 'My Custom Title');
    */
   setTitle = actions.setWindowTitle;
 
   /**
-   * Enable or disable mouse and keyboard input to the specified window.
-   * @param hwnd - Window handle
-   * @param enabled - True to enable, false to disable
-   * @returns {boolean} True if successful
+   * Enables or disables mouse and keyboard input to a window and all its child windows.
+   * When disabled, the window and its children cannot receive user input.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param enabled - True to enable input, false to disable input
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.setEnabled(hwnd, false); // Disable user input
+   * window.setEnabled(hwnd, true);  // Re-enable input
    */
   setEnabled = actions.setWindowEnabled;
 
   /**
-   * Update the specified window by adding a rectangle to its update region.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Forces a window to redraw itself immediately.
+   * Adds the entire window rectangle to its update region.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.redraw(hwnd); // Force window refresh
    */
   redraw = actions.redrawWindow;
 
   /**
-   * Send the window to the bottom of the Z-order.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Moves a window to the bottom of the Z-order (behind all other windows).
+   * The window does not lose activation.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.moveToBottom(hwnd);
    */
   moveToBottom = actions.moveWindowToBottom;
 
   /**
-   * Bring the window to the top of the Z-order.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Brings a window to the top of the Z-order (above all other windows).
+   * Does not activate the window unless it's already active.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.moveToTop(hwnd);
    */
   moveToTop = actions.moveWindowToTop;
 
   /**
-   * Retrieve the full path of the executable that created the window.
-   * @param hwnd - Window handle
-   * @returns {string} Full path to the executable
+   * Retrieves the full file path of the executable file that created the window's process.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {string} Full absolute path to the executable file
+   * 
+   * @example
+   * const exePath = window.getProcessPath(hwnd);
+   * console.log(`Executable: ${exePath}`);
    */
   getProcessPath = actions.getWindowProcessPath;
 
   /**
-   * Convert client coordinates to screen coordinates.
-   * @param hwnd - Window handle
-   * @param x - Client X
-   * @param y - Client Y
-   * @returns {{x: number, y: number} | null} Screen coordinates
+   * Converts coordinates from a window's client area to screen coordinates.
+   * Useful for positioning elements on screen relative to a window.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param x - X coordinate relative to the client area (top-left is 0,0)
+   * @param y - Y coordinate relative to the client area
+   * @returns {{x: number, y: number} | null} Screen coordinates, or null if conversion failed
+   * 
+   * @example
+   * const screenPos = window.clientToScreen(hwnd, 10, 20);
+   * if (screenPos) {
+   *   console.log(`Screen position: ${screenPos.x}, ${screenPos.y}`);
+   * }
    */
   clientToScreen = actions.clientToScreen;
 
   /**
-   * Convert screen coordinates to client coordinates.
-   * @param hwnd - Window handle
-   * @param x - Screen X
-   * @param y - Screen Y
-   * @returns {{x: number, y: number} | null} Client coordinates
+   * Converts screen coordinates to coordinates relative to a window's client area.
+   * Useful for determining where a screen point is within a window.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param x - X coordinate in screen coordinates
+   * @param y - Y coordinate in screen coordinates
+   * @returns {{x: number, y: number} | null} Client coordinates, or null if conversion failed
+   * 
+   * @example
+   * const clientPos = window.screenToClient(hwnd, 500, 300);
+   * if (clientPos) {
+   *   console.log(`Client position: ${clientPos.x}, ${clientPos.y}`);
+   * }
    */
   screenToClient = actions.screenToClient;
 
   /**
-   * Activate (focus and restore) a window.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Activates a window by bringing it to the foreground and restoring it if minimized.
+   * Combines the functionality of `setForeground` and `restoreWindow`.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if successful, false otherwise
+   * 
+   * @example
+   * window.activate(hwnd); // Restore and focus
    */
   activate = actions.activateWindow;
 
   /**
-   * Wait for a window to become active.
-   * @param hwnd - Window handle
-   * @param timeout - Timeout in ms
-   * @returns {Promise<boolean>} True if activated
+   * Waits for a window to become the active foreground window.
+   * Polls every 100ms checking if the window is active.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param timeout - Maximum time to wait in milliseconds
+   * @returns {Promise<boolean>} Promise that resolves to true if window became active before timeout, false otherwise
+   * 
+   * @example
+   * const isActive = await window.waitActive(hwnd, 3000);
    */
   waitActive = actions.waitActiveWindow;
 
   /**
-   * Wait for a window to lose focus.
-   * @param hwnd - Window handle
-   * @param timeout - Timeout in ms
-   * @returns {Promise<boolean>} True if deactivated
+   * Waits for a window to lose focus (become inactive).
+   * Polls every 100ms checking if the window is no longer active.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param timeout - Maximum time to wait in milliseconds
+   * @returns {Promise<boolean>} Promise that resolves to true if window became inactive before timeout, false otherwise
+   * 
+   * @example
+   * const isInactive = await window.waitNotActive(hwnd, 2000);
    */
   waitNotActive = actions.waitNotActiveWindow;
 
   /**
-   * Force kill a window's process.
-   * @param hwnd - Window handle
-   * @returns {boolean} True if successful
+   * Forcefully terminates the process that owns the window.
+   * This does not allow the application to save changes or cleanup.
+   * Use `closeWindow` for graceful shutdown.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {boolean} True if the process was successfully terminated, false otherwise
+   * 
+   * @example
+   * window.kill(hwnd); // Force kill - use with caution
    */
   kill = actions.killWindow;
 
   /**
-   * Get window style flags.
-   * @param hwnd - Window handle
-   * @returns {number} Style flags
+   * Retrieves the window style flags (GWL_STYLE).
+   * Window styles control window appearance and behavior (e.g., WS_VISIBLE, WS_BORDER).
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {number} Current style flags as a bitmask
+   * 
+   * @example
+   * const style = window.getStyle(hwnd);
    */
   getStyle = actions.getWindowStyle;
 
   /**
-   * Set window style flags.
-   * @param hwnd - Window handle
-   * @param style - New style flags
-   * @returns {number} Previous style
+   * Sets the window style flags (GWL_STYLE).
+   * Window styles control window appearance and behavior.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param style - New style flags as a bitmask
+   * @returns {number} Previous style flags
+   * 
+   * @example
+   * const oldStyle = window.setStyle(hwnd, newStyleFlags);
    */
   setStyle = actions.setWindowStyle;
 
   /**
-   * Get window extended style flags.
-   * @param hwnd - Window handle
-   * @returns {number} Extended style flags
+   * Retrieves the extended window style flags (GWL_EXSTYLE).
+   * Extended styles control additional window behavior (e.g., WS_EX_TOPMOST, WS_EX_TRANSPARENT).
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {number} Current extended style flags as a bitmask
+   * 
+   * @example
+   * const exStyle = window.getExStyle(hwnd);
    */
   getExStyle = actions.getWindowExStyle;
 
   /**
-   * Set window extended style flags.
-   * @param hwnd - Window handle
-   * @param style - New extended style flags
-   * @returns {number} Previous extended style
+   * Sets the extended window style flags (GWL_EXSTYLE).
+   * Extended styles control additional window behavior.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @param style - New extended style flags as a bitmask
+   * @returns {number} Previous extended style flags
+   * 
+   * @example
+   * const oldExStyle = window.setExStyle(hwnd, newExStyleFlags);
    */
   setExStyle = actions.setWindowExStyle;
 
   /**
-   * Get window min/max state.
-   * @param hwnd - Window handle
-   * @returns {number} -1 (min), 0 (normal), 1 (max)
+   * Determines the current minimized/maximized state of a window.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {number} -1 if minimized, 0 if normal/restored, 1 if maximized
+   * 
+   * @example
+   * const state = window.getMinMax(hwnd);
+   * if (state === 1) console.log('Window is maximized');
    */
   getMinMax = actions.getWindowMinMax;
 
   /**
-   * Get list of all visible window handles.
-   * @returns {bigint[]} Array of handles
+   * Retrieves a list of all visible top-level window handles.
+   * 
+   * @returns {bigint[]} Array of window handles
+   * 
+   * @example
+   * const handles = window.getList();
+   * console.log(`Found ${handles.length} windows`);
    */
   getList = actions.getWindowList;
 
   /**
-   * Get count of visible windows.
-   * @returns {number} Count
+   * Gets the count of all visible top-level windows.
+   * More efficient than calling `getList().length`.
+   * 
+   * @returns {number} Number of visible windows
+   * 
+   * @example
+   * const count = window.getCount();
    */
   getCount = actions.getWindowCount;
 
   /**
-   * Minimize all windows.
+   * Minimizes all top-level windows on the desktop.
+   * Equivalent to Windows+D or Show Desktop.
+   * 
+   * @example
+   * window.minimizeAll(); // Show desktop
    */
   minimizeAll = actions.minimizeAll;
 
   /**
-   * Get process name of window owner.
-   * @param hwnd - Window handle
-   * @returns {string} Process name (e.g. "notepad.exe")
+   * Retrieves the executable name of the process that owns the window.
+   * Returns just the filename, not the full path.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {string} Process name including extension (e.g., "notepad.exe", "chrome.exe")
+   * 
+   * @example
+   * const processName = window.getProcessName(hwnd);
+   * console.log(`Process: ${processName}`);
    */
   getProcessName = actions.getWindowProcessName;
 
   /**
-   * Get all text from window and children.
-   * @param hwnd - Window handle
-   * @returns {string} Combined text
+   * Retrieves all text content from a window and all its child windows.
+   * Useful for extracting text from dialog boxes and UI elements.
+   * 
+   * @param hwnd - Window handle (bigint)
+   * @returns {string} Combined text from the window and its children, separated by newlines
+   * 
+   * @example
+   * const text = window.getText(hwnd);
+   * console.log(`Window contains: ${text}`);
    */
   getText = actions.getWindowText;
 
   /**
-   * Set the region of a window (change its shape).
+   * Functions for setting custom window shapes by defining regions.
+   * A window region determines the area within a window where the system permits drawing.
+   * The system does not display portions of a window outside the window region.
    */
   readonly setRegion = {
     /**
-     * Set a rectangular region.
-     * @param hwnd - Window handle
-     * @param x - X coordinate
-     * @param y - Y coordinate
-     * @param w - Width
-     * @param h - Height
-     * @param redraw - Redraw window (default: true)
+     * Sets a rectangular region for the window.
+     * 
+     * @param hwnd - Window handle (bigint)
+     * @param x - X coordinate of the rectangle's upper-left corner
+     * @param y - Y coordinate of the rectangle's upper-left corner
+     * @param w - Width of the rectangle
+     * @param h - Height of the rectangle
+     * @param redraw - Whether to redraw the window after setting region (default: true)
+     * 
+     * @example
+     * window.setRegion.rect(hwnd, 0, 0, 400, 300);
      */
     rect: actions.setWindowRegionRect,
     /**
-     * Set an elliptical region.
-     * @param hwnd - Window handle
-     * @param x - X coordinate
-     * @param y - Y coordinate
-     * @param w - Width
-     * @param h - Height
-     * @param redraw - Redraw window (default: true)
+     * Sets an elliptical (oval/circular) region for the window.
+     * 
+     * @param hwnd - Window handle (bigint)
+     * @param x - X coordinate of the bounding rectangle's upper-left corner
+     * @param y - Y coordinate of the bounding rectangle's upper-left corner
+     * @param w - Width of the bounding rectangle
+     * @param h - Height of the bounding rectangle (use same as width for circle)
+     * @param redraw - Whether to redraw the window after setting region (default: true)
+     * 
+     * @example
+     * // Create a circular window
+     * window.setRegion.ellipse(hwnd, 0, 0, 300, 300);
      */
     ellipse: actions.setWindowRegionEllipse,
     /**
-     * Set a rounded rectangular region.
-     * @param hwnd - Window handle
-     * @param x - X coordinate
-     * @param y - Y coordinate
-     * @param w - Width
-     * @param h - Height
-     * @param rw - Width of ellipse used for rounded corners
-     * @param rh - Height of ellipse used for rounded corners
-     * @param redraw - Redraw window (default: true)
+     * Sets a rounded rectangular region for the window.
+     * 
+     * @param hwnd - Window handle (bigint)
+     * @param x - X coordinate of the rectangle's upper-left corner
+     * @param y - Y coordinate of the rectangle's upper-left corner
+     * @param w - Width of the rectangle
+     * @param h - Height of the rectangle
+     * @param rw - Width of ellipse used for rounding the corners
+     * @param rh - Height of ellipse used for rounding the corners
+     * @param redraw - Whether to redraw the window after setting region (default: true)
+     * 
+     * @example
+     * // Create a window with rounded corners
+     * window.setRegion.round(hwnd, 0, 0, 500, 400, 20, 20);
      */
     round: actions.setWindowRegionRound,
     /**
-     * Set a polygonal region.
-     * @param hwnd - Window handle
-     * @param points - Array of points {x, y}
-     * @param fillMode - Fill mode (1=ALTERNATE, 2=WINDING) (default: 1)
-     * @param redraw - Redraw window (default: true)
+     * Sets a polygonal region for the window.
+     * 
+     * @param hwnd - Window handle (bigint)
+     * @param points - Array of point objects {x, y} defining the polygon vertices
+     * @param fillMode - Fill mode: 1 for ALTERNATE (default), 2 for WINDING
+     * @param redraw - Whether to redraw the window after setting region (default: true)
+     * 
+     * @example
+     * // Create a triangular window
+     * window.setRegion.polygon(hwnd, [
+     *   {x: 250, y: 0},
+     *   {x: 500, y: 400},
+     *   {x: 0, y: 400}
+     * ]);
      */
     polygon: actions.setWindowRegionPolygon,
     /**
-     * Reset the window region (restore normal shape).
-     * @param hwnd - Window handle
-     * @param redraw - Redraw window (default: true)
+     * Resets the window region to default (entire window rectangle).
+     * Restores the window to its normal rectangular shape.
+     * 
+     * @param hwnd - Window handle (bigint)
+     * @param redraw - Whether to redraw the window after resetting region (default: true)
+     * 
+     * @example
+     * window.setRegion.reset(hwnd); // Restore normal shape
      */
     reset: actions.resetWindowRegion,
   };
 }
 
-
+/**
+ * Window management class providing comprehensive functions for controlling and querying Windows OS windows.
+ * Supports window manipulation, state detection, enumeration, and coordinate transformations.
+ */
 export const window = new Window();

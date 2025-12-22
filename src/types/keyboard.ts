@@ -1,15 +1,24 @@
-import { KEYBOARD_MAPPING } from "../keyboard/mapping"
+import { KEYBOARD_MAPPING } from "../keyboard/mapping";
 
-export type KeyEvent = {
-  event: 'down' | 'up'
-  name: keyof typeof KEYBOARD_MAPPING
-  vk_code: number
-  isKeyDown: boolean
-}
+export type KeyboardDownEvent = {
+  event: "down";
+  key: keyof typeof KEYBOARD_MAPPING;
+  vk_code: number;
+  scan_code: number;
+};
+
+export type KeyboardUpEvent = {
+  event: "up";
+  key: keyof typeof KEYBOARD_MAPPING;
+  vk_code: number;
+  scan_code: number;
+};
+
+export type KeyboardEvent = KeyboardDownEvent | KeyboardUpEvent;
 
 export type KeyboardEvents = {
-  down: KeyEvent
-  up: KeyEvent
-}
+  down: KeyboardDownEvent;
+  up: KeyboardUpEvent;
+};
 
-export type KeyboardCallback = (ev: KeyEvent) => void
+export type KeyboardCallback = (ev: KeyboardEvent) => void;

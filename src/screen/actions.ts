@@ -1,8 +1,9 @@
 import { user32, gdi32 } from "../core/ffi-loader";
 import { loadImage } from "../image/actions";
-import { ptr, type Pointer } from "bun:ffi";
-import type { RGB, Point } from "../types/windows";
-import { hexToRgb, rgbToHex, isColorSimilar } from "../utils";
+import { ptr, type Pointer, JSCallback } from "bun:ffi";
+import type { RGB, Point, ImageData } from "../types";
+import { utils } from "../utils";
+import { image, Image } from "../image/class";
 
 // ==================== Internal Helpers ====================
 
@@ -35,7 +36,7 @@ export function getPixel(x: number, y: number): RGB | null {
 export function getPixelHex(x: number, y: number): string | null {
   const rgb = getPixel(x, y);
   if (!rgb) return null;
-  return rgbToHex(rgb);
+  return utils.rgbToHex(rgb);
 }
 
 export function checkPixel(
@@ -46,7 +47,7 @@ export function checkPixel(
 ): boolean {
   const p = getPixel(x, y);
   if (!p) return false;
-  return isColorSimilar(p, target, tolerance);
+  return utils.isColorSimilar(p, target, tolerance);
 }
 
 export function waitForPixel(
@@ -120,12 +121,12 @@ export function pixelSearch(
   const width = right - left + 1;
   const height = bottom - top + 1;
 
-  const buffer = captureScreen(left, top, width, height);
+  const buffer = capture(left, top, width, height);
   if (!buffer) return null;
 
   let target: RGB;
   if (typeof color === "string") {
-    target = hexToRgb(color);
+    target = utils.hexToRgb(color);
   } else if (typeof color === "number") {
     target = {
       r: (color >> 16) & 0xff,
@@ -139,9 +140,9 @@ export function pixelSearch(
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4;
-      const b = buffer[i];
-      const g = buffer[i + 1];
-      const r = buffer[i + 2];
+      const b = buffer.buffer[i];
+      const g = buffer.buffer[i + 1];
+      const r = buffer.buffer[i + 2];
 
       if (tolerance === 0) {
         if (r === target.r && g === target.g && b === target.b) {
@@ -167,11 +168,18 @@ export async function imageSearch(
   y1: number,
   x2: number,
   y2: number,
-  imagePath: string,
+  image: string | Image,
   tolerance: number = 0
 ): Promise<Point | null> {
-  const needle = await loadImage(imagePath);
-  if (!needle) return null;
+  let needle: Image;
+
+  if (typeof image === "string") {
+    const loaded = await loadImage(image);
+    if (!loaded) return null;
+    needle = loaded;
+  } else {
+    needle = image;
+  }
 
   const left = Math.min(x1, x2);
   const top = Math.min(y1, y2);
@@ -180,7 +188,7 @@ export async function imageSearch(
   const width = right - left + 1;
   const height = bottom - top + 1;
 
-  const haystack = captureScreen(left, top, width, height);
+  const haystack = capture(left, top, width, height);
   if (!haystack) return null;
 
   const nW = needle.width;
@@ -215,12 +223,12 @@ export async function imageSearch(
 
       if (
         !check(
-          haystack[hIdx + 2],
-          haystack[hIdx + 1],
-          haystack[hIdx],
-          needle.data[nIdx + 2],
-          needle.data[nIdx + 1],
-          needle.data[nIdx]
+          haystack.buffer[hIdx + 2],
+          haystack.buffer[hIdx + 1],
+          haystack.buffer[hIdx],
+          needle.buffer[nIdx + 2],
+          needle.buffer[nIdx + 1],
+          needle.buffer[nIdx]
         )
       )
         continue;
@@ -235,12 +243,12 @@ export async function imageSearch(
 
           if (
             !check(
-              haystack[hIdx + 2],
-              haystack[hIdx + 1],
-              haystack[hIdx],
-              needle.data[nIdx + 2],
-              needle.data[nIdx + 1],
-              needle.data[nIdx]
+              haystack.buffer[hIdx + 2],
+              haystack.buffer[hIdx + 1],
+              haystack.buffer[hIdx],
+              needle.buffer[nIdx + 2],
+              needle.buffer[nIdx + 1],
+              needle.buffer[nIdx]
             )
           ) {
             match = false;
@@ -259,12 +267,12 @@ export async function imageSearch(
   return null;
 }
 
-export function captureScreen(
+export function capture(
   x = 0,
   y = 0,
   width?: number,
   height?: number
-): Uint8Array | null {
+): Image | null {
   const w = width || user32.symbols.GetSystemMetrics(0);
   const h = height || user32.symbols.GetSystemMetrics(1);
 
@@ -331,22 +339,86 @@ export function captureScreen(
   gdi32.symbols.DeleteDC(memDC);
   user32.symbols.ReleaseDC(null, screenDC);
 
-  return buffer;
+  if (!buffer) return null;
+
+  return new Image({
+    width: w,
+    height: h,
+    buffer: buffer,
+  });
 }
 
 export function getMonitors(): Array<{
+  handle: bigint;
   rect: { left: number; top: number; right: number; bottom: number };
+  workArea: { left: number; top: number; right: number; bottom: number };
   isPrimary: boolean;
+  deviceName: string;
 }> {
-  const width = user32.symbols.GetSystemMetrics(78);
-  const height = user32.symbols.GetSystemMetrics(79);
-  const left = user32.symbols.GetSystemMetrics(76);
-  const top = user32.symbols.GetSystemMetrics(77);
+  const monitors: Array<{
+    handle: bigint;
+    rect: { left: number; top: number; right: number; bottom: number };
+    workArea: { left: number; top: number; right: number; bottom: number };
+    isPrimary: boolean;
+    deviceName: string;
+  }> = [];
 
-  return [
-    {
-      rect: { left, top, right: left + width, bottom: top + height },
-      isPrimary: true,
+  const MONITORINFOF_PRIMARY = 0x00000001;
+  const CCHDEVICENAME = 32;
+
+  const callback = new JSCallback(
+    (
+      hMonitor: bigint,
+      _hdcMonitor: bigint,
+      _lprcMonitor: bigint,
+      _dwData: bigint
+    ) => {
+      const monitorInfoSize = 40 + CCHDEVICENAME * 2;
+      const monitorInfo = new Uint8Array(monitorInfoSize);
+      const view = new DataView(monitorInfo.buffer);
+
+      view.setUint32(0, monitorInfoSize, true);
+
+      if (user32.symbols.GetMonitorInfoW(hMonitor as any, ptr(monitorInfo))) {
+        const left = view.getInt32(4, true);
+        const top = view.getInt32(8, true);
+        const right = view.getInt32(12, true);
+        const bottom = view.getInt32(16, true);
+
+        const workLeft = view.getInt32(20, true);
+        const workTop = view.getInt32(24, true);
+        const workRight = view.getInt32(28, true);
+        const workBottom = view.getInt32(32, true);
+
+        const flags = view.getUint32(36, true);
+        const isPrimary = (flags & MONITORINFOF_PRIMARY) !== 0;
+
+        const deviceNameBytes = monitorInfo.slice(40, 40 + CCHDEVICENAME * 2);
+        const deviceName = new TextDecoder("utf-16le")
+          .decode(deviceNameBytes)
+          .replace(/\0.*$/, "");
+
+        monitors.push({
+          handle: hMonitor,
+          rect: { left, top, right, bottom },
+          workArea: {
+            left: workLeft,
+            top: workTop,
+            right: workRight,
+            bottom: workBottom,
+          },
+          isPrimary,
+          deviceName,
+        });
+      }
+
+      return true;
     },
-  ];
+    { args: ["ptr", "ptr", "ptr", "ptr"], returns: "bool" }
+  );
+
+  user32.symbols.EnumDisplayMonitors(null, null, callback.ptr, 0 as any);
+  callback.close();
+
+  return monitors;
 }

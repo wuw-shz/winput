@@ -1,4 +1,5 @@
-import type { RGB, Point } from "../types/windows";
+import type { RGB, Point } from "../types";
+import { Image } from "../image/class";
 export declare function getScreenSize(): {
     width: number;
     height: number;
@@ -21,15 +22,23 @@ export declare function waitForAnyPixel(checks: Array<{
     tolerance?: number;
 }>, timeout?: number): Promise<number>;
 export declare function pixelSearch(x1: number, y1: number, x2: number, y2: number, color: RGB | string | number, tolerance?: number): Point | null;
-export declare function imageSearch(x1: number, y1: number, x2: number, y2: number, imagePath: string, tolerance?: number): Promise<Point | null>;
-export declare function captureScreen(x?: number, y?: number, width?: number, height?: number): Uint8Array | null;
+export declare function imageSearch(x1: number, y1: number, x2: number, y2: number, image: string | Image, tolerance?: number): Promise<Point | null>;
+export declare function capture(x?: number, y?: number, width?: number, height?: number): Image | null;
 export declare function getMonitors(): Array<{
+    handle: bigint;
     rect: {
         left: number;
         top: number;
         right: number;
         bottom: number;
     };
+    workArea: {
+        left: number;
+        top: number;
+        right: number;
+        bottom: number;
+    };
     isPrimary: boolean;
+    deviceName: string;
 }>;
 //# sourceMappingURL=actions.d.ts.map

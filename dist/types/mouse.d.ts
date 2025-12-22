@@ -1,5 +1,5 @@
-export type MouseEventMove = {
-    event: 'move';
+export type MouseMoveEvent = {
+    event: "move";
     x: number;
     y: number;
     lastX: number;
@@ -7,17 +7,23 @@ export type MouseEventMove = {
     deltaX: number;
     deltaY: number;
 };
-export type MouseEventButton = {
-    event: 'down' | 'up';
-    button: 'left' | 'right' | 'middle' | 'x1' | 'x2';
+export type MouseDownEvent = {
+    event: "down";
+    button: "left" | "right" | "middle" | "x1" | "x2";
     x: number;
     y: number;
 };
-export type MouseEvent = MouseEventMove | MouseEventButton;
+export type MouseUpEvent = {
+    event: "up";
+    button: "left" | "right" | "middle" | "x1" | "x2";
+    x: number;
+    y: number;
+};
+export type MouseEvent = MouseMoveEvent | MouseDownEvent | MouseUpEvent;
 export type MouseEvents = {
-    move: MouseEventMove;
-    down: MouseEventButton;
-    up: MouseEventButton;
+    move: MouseMoveEvent;
+    down: MouseDownEvent;
+    up: MouseUpEvent;
 };
 export type MouseCallback = (ev: MouseEvent) => void;
 //# sourceMappingURL=mouse.d.ts.map

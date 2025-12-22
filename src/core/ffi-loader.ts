@@ -208,6 +208,14 @@ export const user32 = dlopen(`user32.${suffix}`, {
     args: [FFIType.u64, FFIType.u64, FFIType.bool],
     returns: FFIType.int,
   },
+  EnumDisplayMonitors: {
+    args: [FFIType.ptr, FFIType.ptr, FFIType.function, FFIType.ptr],
+    returns: FFIType.bool,
+  },
+  GetMonitorInfoW: {
+    args: [FFIType.ptr, FFIType.ptr],
+    returns: FFIType.bool,
+  },
 });
 
 export const gdi32 = dlopen("gdi32.dll", {

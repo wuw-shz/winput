@@ -2,7 +2,6 @@ import { user32 } from "../core/ffi-loader";
 import { buildMouseInputBuffer, buildInputBuffer } from "../core/structures";
 import {
   failSafeCheck,
-  handlePause,
   toWindowsCoordinates,
   position,
 } from "../core/utils";
@@ -22,7 +21,6 @@ import {
 } from "../core/constants";
 import { LEFT, MIDDLE, MouseButton, RIGHT, X1, X2 } from "./buttons";
 import { mouse } from "./class";
-import { config } from "../config";
 
 const MOUSEEVENTF_WHEEL = 0x0800;
 const MOUSEEVENTF_HWHEEL = 0x1000;
@@ -98,11 +96,10 @@ function sendMouseInput(
   user32.symbols.SendInput(1, inputBuf, 40);
 }
 
-export function press(button: MouseButton = LEFT, _pause = config.PAUSE) {
+export function press(button: MouseButton = LEFT) {
   try {
     const { event, mouseData } = getButtonEvent(button, "down");
     sendMouseInput(0, 0, mouseData, event, 0);
-    if (_pause) handlePause(_pause);
     return mouse;
   } catch (error) {
     console.error("[Mouse Press Error]", error);
@@ -110,11 +107,10 @@ export function press(button: MouseButton = LEFT, _pause = config.PAUSE) {
   }
 }
 
-export function release(button: MouseButton = LEFT, _pause = config.PAUSE) {
+export function release(button: MouseButton = LEFT) {
   try {
     const { event, mouseData } = getButtonEvent(button, "up");
     sendMouseInput(0, 0, mouseData, event, 0);
-    if (_pause) handlePause(_pause);
     return mouse;
   } catch (error) {
     console.error("[Mouse Release Error]", error);
@@ -125,9 +121,15 @@ export function release(button: MouseButton = LEFT, _pause = config.PAUSE) {
 export function click(
   button: Exclude<MouseButton, "x1" | "x2"> = LEFT,
   repeat = 1,
-  delay = 0.0,
-  _pause = config.PAUSE
+  delay = 0.0
 ) {
+  if (repeat < 1) {
+    throw new Error(`repeat must be >= 1, got: ${repeat}`);
+  }
+  if (delay < 0) {
+    throw new Error(`delay must be >= 0, got: ${delay}`);
+  }
+  
   if ([LEFT, MIDDLE, RIGHT].includes(button)) {
     let downEv = 0,
       upEv = 0;
@@ -148,15 +150,13 @@ export function click(
       if (delay > 0) Bun.sleepSync(Math.round(delay * 1000));
     }
   }
-  if (_pause) handlePause(_pause);
   return mouse;
 }
 
 export function moveTo(
   x?: number,
   y?: number,
-  relative = false,
-  _pause = config.PAUSE
+  relative = false
 ) {
   try {
     failSafeCheck();
@@ -166,11 +166,10 @@ export function moveTo(
       const [finalX, finalY] = position(x, y);
       const [winX, winY] = toWindowsCoordinates(finalX, finalY);
       sendMouseInput(winX, winY, 0, MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, 0);
-      if (_pause) handlePause(_pause);
     } else {
       const offsetX = x ?? 0;
       const offsetY = y ?? 0;
-      moveRel(offsetX, offsetY, true, _pause);
+      moveRel(offsetX, offsetY, true);
     }
 
     return mouse;
@@ -183,16 +182,14 @@ export function moveTo(
 export function moveRel(
   xOffset = 0,
   yOffset = 0,
-  relative = false,
-  _pause = config.PAUSE
+  relative = false
 ) {
   failSafeCheck();
   if (!relative) {
     const [x, y] = position();
-    moveTo(x + xOffset, y + yOffset, false, _pause);
+    moveTo(x + xOffset, y + yOffset, false);
   } else {
     sendMouseInput(xOffset, yOffset, 0, MOUSEEVENTF_MOVE, 0);
-    if (_pause) handlePause(_pause);
   }
   return mouse;
 }
@@ -214,14 +211,17 @@ export function dragTo(
   x: number,
   y: number,
   button: Exclude<MouseButton, "x1" | "x2"> = LEFT,
-  duration = 0.5,
-  _pause = config.PAUSE
+  duration = 0.5
 ) {
+  if (duration < 0) {
+    throw new Error(`duration must be >= 0, got: ${duration}`);
+  }
+  
   failSafeCheck();
   const [startX, startY] = position();
-  press(button, _pause);
+  press(button);
   if (duration <= 0) {
-    moveTo(x, y, false, _pause);
+    moveTo(x, y, false);
   } else {
     const steps = Math.max(10, Math.floor(duration * 100));
     const stepDelay = duration / steps;
@@ -229,11 +229,11 @@ export function dragTo(
       const progress = i / steps;
       const currentX = Math.round(startX + (x - startX) * progress);
       const currentY = Math.round(startY + (y - startY) * progress);
-      moveTo(currentX, currentY, false, false);
+      moveTo(currentX, currentY, false);
       Bun.sleepSync(Math.round(stepDelay * 1000));
     }
   }
-  release(button, _pause);
+  release(button);
   return mouse;
 }
 
@@ -241,30 +241,26 @@ export function dragRel(
   xOffset: number,
   yOffset: number,
   button: Exclude<MouseButton, "x1" | "x2"> = LEFT,
-  duration = 0.5, // seconds
-  _pause = config.PAUSE
+  duration = 0.5
 ) {
   const [currentX, currentY] = position();
   return dragTo(
     currentX + xOffset,
     currentY + yOffset,
     button,
-    duration,
-    _pause
+    duration
   );
 }
 
 export function scroll(
   clicks: number,
-  direction: "vertical" | "horizontal" = "vertical",
-  _pause = config.PAUSE
+  direction: "vertical" | "horizontal" = "vertical"
 ) {
   failSafeCheck();
   const scrollAmount = clicks * WHEEL_DELTA;
   const flags =
     direction === "vertical" ? MOUSEEVENTF_WHEEL : MOUSEEVENTF_HWHEEL;
   sendMouseInput(0, 0, scrollAmount, flags, 0);
-  if (_pause) handlePause(_pause);
   return mouse;
 }
 
@@ -283,15 +279,18 @@ export type EasingFunction = keyof typeof easingFunctions;
 export async function smoothMoveTo(
   x: number,
   y: number,
-  duration = 0.5, // seconds
-  easing: EasingFunction = "easeOutQuad",
-  _pause = config.PAUSE
+  duration = 0.5,
+  easing: EasingFunction = "easeOutQuad"
 ) {
+  if (duration < 0) {
+    throw new Error(`duration must be >= 0, got: ${duration}`);
+  }
+  
   failSafeCheck();
   const [startX, startY] = position();
   const easeFn = easingFunctions[easing];
   if (duration <= 0) {
-    moveTo(x, y, false, _pause);
+    moveTo(x, y, false);
     return mouse;
   }
   const steps = Math.max(10, Math.floor(duration * 100));
@@ -301,39 +300,43 @@ export async function smoothMoveTo(
     const progress = easeFn(t);
     const currentX = Math.round(startX + (x - startX) * progress);
     const currentY = Math.round(startY + (y - startY) * progress);
-    moveTo(currentX, currentY, false, false);
+    moveTo(currentX, currentY, false);
     Bun.sleepSync(Math.round(stepDelay * 1000));
   }
-  if (_pause) handlePause(_pause);
   return mouse;
 }
 
 export function hold(
   button: MouseButton,
-  duration: number, // seconds
-  _pause = config.PAUSE
+  duration: number
 ) {
+  if (duration < 0) {
+    throw new Error(`duration must be >= 0, got: ${duration}`);
+  }
+  
   failSafeCheck();
-  press(button, false);
+  press(button);
   Bun.sleepSync(Math.round(duration * 1000));
-  release(button, false);
-  if (_pause) handlePause(_pause);
+  release(button);
   return mouse;
 }
 
 export function clickAt(
   x: number,
   y: number,
-  button: Exclude<MouseButton, "x1" | "x2"> = LEFT,
-  _pause = config.PAUSE
+  button: Exclude<MouseButton, "x1" | "x2"> = LEFT
 ) {
   failSafeCheck();
-  moveTo(x, y, false, _pause);
-  click(button, 1, 0, _pause);
+  moveTo(x, y, false);
+  click(button, 1, 0);
   return mouse;
 }
 
 export function isAtPosition(x: number, y: number, tolerance = 0): boolean {
+  if (tolerance < 0) {
+    throw new Error(`tolerance must be >= 0, got: ${tolerance}`);
+  }
+  
   const [currentX, currentY] = position();
   const dx = Math.abs(currentX - x);
   const dy = Math.abs(currentY - y);
@@ -343,11 +346,18 @@ export function isAtPosition(x: number, y: number, tolerance = 0): boolean {
 export function waitForPosition(
   x: number,
   y: number,
-  timeout?: number, // milliseconds
+  timeout?: number,
   tolerance = 0
 ): Promise<boolean> {
+  if (timeout !== undefined && timeout < 0) {
+    throw new Error(`timeout must be >= 0, got: ${timeout}`);
+  }
+  if (tolerance < 0) {
+    throw new Error(`tolerance must be >= 0, got: ${tolerance}`);
+  }
+  
   return new Promise((resolve) => {
-    const checkInterval = 8; // milliseconds
+    const checkInterval = 8;
     let elapsed = 0;
     const intervalId = setInterval(() => {
       if (isAtPosition(x, y, tolerance)) {
@@ -368,8 +378,12 @@ export function waitForPosition(
 
 export async function waitForPress(
   button: MouseButton,
-  timeout?: number // milliseconds
+  timeout?: number
 ): Promise<boolean> {
+  if (timeout !== undefined && timeout < 0) {
+    throw new Error(`timeout must be >= 0, got: ${timeout}`);
+  }
+  
   return new Promise((resolve) => {
     const checkInterval = 8;
     let elapsed = 0;
@@ -392,8 +406,12 @@ export async function waitForPress(
 
 export async function waitForRelease(
   button: MouseButton,
-  timeout?: number // milliseconds
+  timeout?: number
 ): Promise<boolean> {
+  if (timeout !== undefined && timeout < 0) {
+    throw new Error(`timeout must be >= 0, got: ${timeout}`);
+  }
+  
   return new Promise((resolve) => {
     const checkInterval = 8;
     let elapsed = 0;

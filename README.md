@@ -64,7 +64,7 @@ npm install winput
 import { keyboard, mouse, window, image } from "winput";
 
 // Keyboard
-keyboard.type("Hello World!");
+keyboard.write("Hello World!");
 keyboard.hotkey(["ctrl", "s"]); // Save
 
 // Mouse
@@ -91,19 +91,50 @@ if (img) {
 import { keyboard, mouse } from "winput";
 
 // Listen for key presses
-keyboard.listener.on("down", (e) => {
-  console.log(`Key pressed: ${e.name} (${e.vk_code})`);
-  if (e.name === "escape") process.exit(0);
+keyboard.listener.on.down((e) => {
+  console.log(`Key pressed: ${e.key} (${e.vk_code})`);
+  if (e.key === "escape") process.exit(0);
 });
 
 // Listen for mouse clicks
-mouse.listener.on("down", (e) => {
+mouse.listener.on.down((e) => {
   console.log(`Mouse button ${e.button} at ${e.x}, ${e.y}`);
 });
 
 // Start listening
-keyboard.listener.run();
-mouse.listener.run();
+keyboard.listener.start();
+mouse.listener.start();
+```
+
+### Advanced Examples
+
+```typescript
+import { screen, image, window } from "winput";
+
+// Screen capture with image processing
+const captured = screen.capture(0, 0, 800, 600);
+if (captured) {
+  const processed = image.process(captured);
+  processed.grayscale().edges().save("edges.png");
+}
+
+// Multi-monitor information
+const monitors = screen.getMonitors();
+monitors.forEach((monitor, i) => {
+  const width = monitor.rect.right - monitor.rect.left;
+  const height = monitor.rect.bottom - monitor.rect.top;
+  console.log(`Monitor ${i + 1}: ${monitor.deviceName}`);
+  console.log(`  Resolution: ${width}x${height}`);
+  console.log(`  Primary: ${monitor.isPrimary}`);
+});
+
+// Window manipulation with transparency
+const notepad = window.findWindow("Notepad");
+if (notepad) {
+  window.setOpacity(notepad, 0.8);
+  window.setTopmost(notepad, true);
+  window.center(notepad);
+}
 ```
 
 ## API Reference 📚
@@ -128,6 +159,29 @@ mouse.listener.run();
 | `getKeyState(key)` | Get the current state of a key (pressed/toggled). |
 | `releaseAll()` | Release all held keys (cleanup). |
 | `listener` | Access the event listener (see Hooks). |
+
+#### Keyboard Exports
+
+| Export | Description |
+| :--- | :--- |
+| `VK_CODES` | Windows Virtual Key Code constants (e.g., `VK_CODES.KEY_A`, `VK_CODES.CONTROL`). |
+| `KEYBOARD_MAPPING` | Full key definitions with scan codes and VK codes. |
+| `KeyName` | TypeScript type for valid key names (e.g., `"a"`, `"ctrl"`, `"enter"`). |
+
+```typescript
+import { keyboard, VK_CODES, KEYBOARD_MAPPING, KeyName } from "winput";
+
+// Use VK_CODES for raw virtual key codes
+console.log(VK_CODES.KEY_A); // 65
+console.log(VK_CODES.CONTROL); // 17
+
+// Use KeyName for type-safe key parameters
+const myKey: KeyName = "ctrl";
+keyboard.press(myKey);
+
+// Access key definitions
+console.log(KEYBOARD_MAPPING["enter"]); // { scan: 0x1c, vk: 13 }
+```
 
 ### Mouse (`mouse`) 🖱️
 
@@ -220,8 +274,8 @@ mouse.listener.run();
 | Method | Description |
 | :--- | :--- |
 | `getScreenSize()` | Get primary monitor resolution. |
-| `getMonitors()` | Get info about all connected monitors. |
-| `capture(x, y, w, h)` | Capture raw screen buffer from a region. |
+| `getMonitors()` | Get detailed info about all connected monitors. |
+| `capture(x?, y?, w?, h?)` | Capture screen region as `ImageData` (defaults to full screen). |
 | `getPixel(x, y)` | Get RGB color of a specific pixel. |
 | `getPixelHex(x, y)` | Get Hex color of a specific pixel. |
 | `getMultiplePixels(positions)` | Get RGB colors for multiple positions. |
@@ -229,18 +283,20 @@ mouse.listener.run();
 | `checkMultiplePixels(checks)` | Check if multiple pixels match targets. |
 | `waitForPixel(x, y, color, ...)` | Wait until a pixel becomes a color. |
 | `waitForAnyPixel(checks, ...)` | Wait for any pixel condition to match. |
-| `pixelSearch(rect, color, tolerance?)` | Find coordinates of a color in a region. |
-| `imageSearch(rect, imagePath, tolerance?)` | Find an image on the screen. |
+| `pixelSearch(x1, y1, x2, y2, color, tolerance?)` | Find coordinates of a color in a region. |
+| `imageSearch(x1, y1, x2, y2, image, tolerance?)` | Find an image on the screen. |
 
 ### Image (`image`) 🖼️
 
 | Method | Description |
 | :--- | :--- |
-| `load(path)` | Load an image from file (returns `Promise<ImageProcessor>`). |
-| `save(path, format?)` | Save an image to file. |
-| `process(buffer)` | Create a processor from an image buffer. |
+| `load(path)` | Load an image from file (returns `Promise<Image \| null>`). |
+| `save(img, path?)` | Save an image to file (returns `Promise<boolean>`). |
+| `process(data)` | Create an Image processor from `ImageData`. |
 
-#### ImageProcessor (Chainable)
+#### Image (Chainable)
+
+All methods return `this` for method chaining.
 
 | Method | Description |
 | :--- | :--- |
@@ -253,8 +309,24 @@ mouse.listener.run();
 | `edges()` | Detect edges (Sobel). |
 | `dilate(pixels?)` | Morphological dilation. |
 | `erode(pixels?)` | Morphological erosion. |
-| `open(pixels?)` | Morphological opening (remove noise). |
-| `close(pixels?)` | Morphological closing (fill holes). |
+| `erode2dilate(pixels?)` | Morphological opening (remove noise). |
+| `dilate2erode(pixels?)` | Morphological closing (fill holes). |
+| `invert()` | Invert all colors (create negative). |
+| `sepia()` | Apply sepia tone effect. |
+| `hue(degrees)` | Rotate hue by specified degrees. |
+| `saturate(factor)` | Adjust color saturation. |
+| `rotate(degrees)` | Rotate image by angle. |
+| `flip(horizontal?, vertical?)` | Flip image horizontally and/or vertically. |
+| `crop(x, y, w, h)` | Crop to rectangular region. |
+| `resize(w, h, algorithm?)` | Resize image with interpolation. |
+| `threshold(value?)` | Apply binary threshold (default: 128). |
+| `adaptiveThreshold(blockSize?)` | Apply adaptive threshold. |
+| `medianFilter(radius?)` | Median filter for noise reduction. |
+| `bilateralFilter(spatialSigma?, rangeSigma?)` | Edge-preserving smoothing. |
+| `histogram()` | Calculate RGB color histograms. |
+| `autoLevel()` | Auto-adjust levels to stretch histogram. |
+| `overlay(img, x?, y?, alpha?)` | Overlay another image with alpha blending. |
+| `blend(img, mode?)` | Blend with another image using blend mode. |
 | `save(path?)` | Save the processed image. |
 | `toPixels()` | Convert to array of `[r, g, b, a]` pixels. |
 
@@ -264,7 +336,9 @@ mouse.listener.run();
 | :--- | :--- |
 | `rgbToHex(rgb)` | Convert RGB object to Hex string. |
 | `hexToRgb(hex)` | Convert Hex string to RGB object. |
-| `colorDistance(c1, c2)` | Calculate similarity between two colors. |
+| `rgbToHsv(r, g, b)` | Convert RGB to HSV color space. |
+| `hsvToRgb(h, s, v)` | Convert HSV to RGB color space. |
+| `colorDistance(c1, c2)` | Calculate Euclidean distance between two colors. |
 | `isColorSimilar(c1, c2, tolerance)` | Check if two colors are similar. |
 | `pointInRect(point, rect)` | Check if a point is inside a rectangle. |
 

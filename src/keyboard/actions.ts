@@ -1,242 +1,265 @@
-import { user32 } from '../core/ffi-loader'
-import { buildKeyboardInputBuffer, buildInputBuffer } from '../core/structures'
-import { handlePause } from '../core/utils'
-import { KEYBOARD_MAPPING, SHIFT_KEYS } from './mapping'
+import { user32 } from "../core/ffi-loader";
+import { buildKeyboardInputBuffer, buildInputBuffer } from "../core/structures";
+import { KEYBOARD_MAPPING, SHIFT_KEYS, KeyName, VK_CODES } from "./mapping";
 import {
   KEYEVENTF_SCANCODE,
   KEYEVENTF_KEYUP,
   KEYEVENTF_EXTENDEDKEY,
-} from '../core/constants'
-import { keyboard } from './class'
-import { config } from '../config'
+} from "../core/constants";
+import { keyboard } from "./class";
+import { config } from "../config";
+
+const KEYEVENTF_KEYDOWN = 0;
 
 function sendKeyboardInput(
-   scan: number,
-   extended: boolean,
-   flags: number,
-   time = 0
+  scan: number,
+  extended: boolean,
+  flags: number,
+  time = 0
 ) {
-   const fullFlags = flags | (extended ? KEYEVENTF_EXTENDEDKEY : 0)
-   const kiBuf = buildKeyboardInputBuffer(0, scan, fullFlags, time, 0n)
-   const inputBuf = buildInputBuffer(1, kiBuf)
-   user32.symbols.SendInput(1, inputBuf, 40)
+  const fullFlags = flags | (extended ? KEYEVENTF_EXTENDEDKEY : 0);
+  const kiBuf = buildKeyboardInputBuffer(0, scan, fullFlags, time, 0n);
+  const inputBuf = buildInputBuffer(1, kiBuf);
+  user32.symbols.SendInput(1, inputBuf, 40);
 }
 
-export function press(
-   key: keyof typeof KEYBOARD_MAPPING,
-   _pause = config.PAUSE
-) {
-   const { scan, extended } = KEYBOARD_MAPPING[key] as {
-      scan: number
-      extended?: boolean
-   }
-   const flags = KEYEVENTF_SCANCODE
-   sendKeyboardInput(scan, !!extended, flags)
-   if (_pause) handlePause(_pause)
-   return keyboard
+function sendVKInput(vk: number, keyUp: boolean, time = 0) {
+  const flags = keyUp ? KEYEVENTF_KEYUP : KEYEVENTF_KEYDOWN;
+  const kiBuf = buildKeyboardInputBuffer(vk, 0, flags, time, 0n);
+  const inputBuf = buildInputBuffer(1, kiBuf);
+  user32.symbols.SendInput(1, inputBuf, 40);
 }
 
-export function release(
-   key: keyof typeof KEYBOARD_MAPPING,
-   _pause = config.PAUSE
-) {
-   const { scan, extended } = KEYBOARD_MAPPING[key] as {
-      scan: number
-      extended?: boolean
-   }
-   const flags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
-   sendKeyboardInput(scan, !!extended, flags)
-   if (_pause) handlePause(_pause)
-   return keyboard
-}
-
-export function tap(key: keyof typeof KEYBOARD_MAPPING, _pause = config.PAUSE) {
-  press(key, _pause)
-  release(key, _pause)
-  return keyboard
-}
-
-export function repeatTap(
-  key: keyof typeof KEYBOARD_MAPPING,
-  repeat = 1,
-  delay = 0.0, // milliseconds
-  _pause = config.PAUSE
-) {
-  for (let i = 0; i < repeat; i++) {
-    press(key, _pause)
-    release(key, _pause)
-    if (delay > 0) Bun.sleepSync(delay)
+function getKeyDef(key: KeyName): {
+  scan: number;
+  extended?: boolean;
+  vk?: number;
+} {
+  const def = KEYBOARD_MAPPING[key];
+  if (!def) {
+    throw new Error(`Invalid key name: "${key}"`);
   }
-  return keyboard
+  return def as {
+    scan: number;
+    extended?: boolean;
+    vk?: number;
+  };
 }
 
-export function write(message: string, delay = 0.0, _pause = config.PAUSE) {
-  for (const c of message) {
-    if (c >= 'A' && c <= 'Z') {
-      const base = c.toLowerCase() as keyof typeof KEYBOARD_MAPPING
-      press('shift', _pause)
-      tap(base, _pause)
-      release('shift', _pause)
-    } else if (SHIFT_KEYS.has(c)) {
-      const base = SHIFT_KEYS.get(c)! as keyof typeof KEYBOARD_MAPPING
-      press('shift', _pause)
-      tap(base, _pause)
-      release('shift', _pause)
-    } else {
-      tap(c as keyof typeof KEYBOARD_MAPPING, _pause)
-    }
-    if (delay > 0) Bun.sleepSync(delay)
-  }
-  return keyboard
-}
+export function press(key: KeyName) {
+  const def = getKeyDef(key);
 
-export function isPressed(key: keyof typeof KEYBOARD_MAPPING): boolean {
-  const {scan} = KEYBOARD_MAPPING[key]
-  let vkCode: number
-  if (scan > 1024) {
-     const actualScanCode = scan - 1024
-     vkCode = user32.symbols.MapVirtualKeyW(actualScanCode, 1)
+  if (def.scan === 0 && def.vk) {
+    sendVKInput(def.vk, false);
   } else {
-     vkCode = user32.symbols.MapVirtualKeyW(scan, 1)
+    const flags = KEYEVENTF_SCANCODE;
+    sendKeyboardInput(def.scan, !!def.extended, flags);
   }
-  const state = user32.symbols.GetAsyncKeyState(vkCode)
-  return (state & 0x8000) !== 0
+
+  return keyboard;
 }
 
-export function isAnyPressed(keys: (keyof typeof KEYBOARD_MAPPING)[]): boolean {
-  return keys.some((key) => isPressed(key))
+export function release(key: KeyName) {
+  const def = getKeyDef(key);
+
+  if (def.scan === 0 && def.vk) {
+    sendVKInput(def.vk, true);
+  } else {
+    const flags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+    sendKeyboardInput(def.scan, !!def.extended, flags);
+  }
+
+  return keyboard;
 }
 
-export function areAllPressed(
-  keys: (keyof typeof KEYBOARD_MAPPING)[]
-): boolean {
-  return keys.every((key) => isPressed(key))
+export function tap(key: KeyName) {
+  press(key);
+  release(key);
+  return keyboard;
 }
 
-export function hotkey(
-  keys: (keyof typeof KEYBOARD_MAPPING)[],
-  _pause = config.PAUSE
-) {
+export function repeatTap(key: KeyName, repeat = 1, delay = 0.0) {
+  if (repeat < 1) {
+    throw new Error(`repeat must be >= 1, got: ${repeat}`);
+  }
+  if (delay < 0) {
+    throw new Error(`delay must be >= 0, got: ${delay}`);
+  }
+  
+  for (let i = 0; i < repeat; i++) {
+    press(key);
+    release(key);
+    if (delay > 0) Bun.sleepSync(delay);
+  }
+  return keyboard;
+}
+
+export function write(message: string, delay = 0.0) {
+  if (delay < 0) {
+    throw new Error(`delay must be >= 0, got: ${delay}`);
+  }
+  
+  for (const c of message) {
+    if (c >= "A" && c <= "Z") {
+      const base = c.toLowerCase() as KeyName;
+      press("shift");
+      tap(base);
+      release("shift");
+    } else if (SHIFT_KEYS.has(c)) {
+      const base = SHIFT_KEYS.get(c)! as KeyName;
+      press("shift");
+      tap(base);
+      release("shift");
+    } else {
+      tap(c as KeyName);
+    }
+    if (delay > 0) Bun.sleepSync(delay);
+  }
+  return keyboard;
+}
+
+export function isPressed(key: KeyName): boolean {
+  const def = getKeyDef(key);
+
+  if (def.vk) {
+    const state = user32.symbols.GetAsyncKeyState(def.vk);
+    return (state & 0x8000) !== 0;
+  }
+
+  const vkCode = user32.symbols.MapVirtualKeyW(def.scan, 1);
+  const state = user32.symbols.GetAsyncKeyState(vkCode);
+  return (state & 0x8000) !== 0;
+}
+
+export function isAnyPressed(keys: KeyName[]): boolean {
+  return keys.some((key) => isPressed(key));
+}
+
+export function areAllPressed(keys: KeyName[]): boolean {
+  return keys.every((key) => isPressed(key));
+}
+
+export function hotkey(keys: KeyName[]) {
   for (const key of keys) {
-    press(key, _pause)
+    press(key);
   }
   for (let i = keys.length - 1; i >= 0; i--) {
-    release(keys[i], _pause)
+    release(keys[i]);
   }
-  return keyboard
+  return keyboard;
 }
 
-export function hold(
-  key: keyof typeof KEYBOARD_MAPPING,
-  duration: number, // milliseconds
-  _pause = config.PAUSE
-) {
-  press(key, false)
-  Bun.sleepSync(duration)
-  release(key, false)
-  if (_pause) handlePause(_pause)
-  return keyboard
+export function hold(key: KeyName, duration: number) {
+  if (duration < 0) {
+    throw new Error(`duration must be >= 0, got: ${duration}`);
+  }
+  
+  press(key);
+  Bun.sleepSync(duration);
+  release(key);
+  return keyboard;
 }
 
-export function waitForPress(
-  key: keyof typeof KEYBOARD_MAPPING,
-  timeout?: number // milliseconds
-): Promise<boolean> {
+export function waitForPress(key: KeyName, timeout?: number): Promise<boolean> {
+  if (timeout !== undefined && timeout < 0) {
+    throw new Error(`timeout must be >= 0, got: ${timeout}`);
+  }
+  
   return new Promise((resolve) => {
-    const checkInterval = 8
-    let elapsed = 0
+    const checkInterval = 8;
+    let elapsed = 0;
     const intervalId = setInterval(() => {
       if (isPressed(key)) {
-        clearInterval(intervalId)
-        resolve(true)
-        return
+        clearInterval(intervalId);
+        resolve(true);
+        return;
       }
       if (timeout) {
-        elapsed += checkInterval
+        elapsed += checkInterval;
         if (elapsed >= timeout) {
-          clearInterval(intervalId)
-          resolve(false)
+          clearInterval(intervalId);
+          resolve(false);
         }
       }
-    }, checkInterval)
-  })
+    }, checkInterval);
+  });
 }
 
 export function waitForRelease(
-   key: keyof typeof KEYBOARD_MAPPING,
-   timeout?: number // milliseconds
+  key: KeyName,
+  timeout?: number
 ): Promise<boolean> {
-   return new Promise((resolve) => {
-      const checkInterval = 8
-      let elapsed = 0
-      const intervalId = setInterval(() => {
-         if (!isPressed(key)) {
-            clearInterval(intervalId)
-            resolve(true)
-            return
-         }
-         if (timeout) {
-            elapsed += checkInterval
-            if (elapsed >= timeout) {
-               clearInterval(intervalId)
-               resolve(false)
-            }
-         }
-      }, checkInterval)
-   })
-}
-
-export function toggleKey(
-  key: 'capslock' | 'numlock' | 'scrolllock',
-  _pause = config.PAUSE
-) {
-  tap(key, _pause)
-  return keyboard
-}
-
-export function getKeyState(key: keyof typeof KEYBOARD_MAPPING): {
-  isPressed: boolean
-  isToggled: boolean
-} {
-  const {scan} = KEYBOARD_MAPPING[key]
-  let vkCode: number
-  if (scan > 1024) {
-     const actualScanCode = scan - 1024
-     vkCode = user32.symbols.MapVirtualKeyW(actualScanCode, 1)
-  } else {
-     vkCode = user32.symbols.MapVirtualKeyW(scan, 1)
+  if (timeout !== undefined && timeout < 0) {
+    throw new Error(`timeout must be >= 0, got: ${timeout}`);
   }
-  const asyncState = user32.symbols.GetAsyncKeyState(vkCode)
-  const keyState = user32.symbols.GetKeyState(vkCode)
+  
+  return new Promise((resolve) => {
+    const checkInterval = 8;
+    let elapsed = 0;
+    const intervalId = setInterval(() => {
+      if (!isPressed(key)) {
+        clearInterval(intervalId);
+        resolve(true);
+        return;
+      }
+      if (timeout) {
+        elapsed += checkInterval;
+        if (elapsed >= timeout) {
+          clearInterval(intervalId);
+          resolve(false);
+        }
+      }
+    }, checkInterval);
+  });
+}
+
+export function toggleKey(key: "capslock" | "numlock" | "scrolllock") {
+  tap(key);
+  return keyboard;
+}
+
+export function getKeyState(key: KeyName): {
+  isPressed: boolean;
+  isToggled: boolean;
+} {
+  const def = getKeyDef(key);
+  let vkCode: number;
+
+  if (def.vk) {
+    vkCode = def.vk;
+  } else {
+    vkCode = user32.symbols.MapVirtualKeyW(def.scan, 1);
+  }
+
+  const asyncState = user32.symbols.GetAsyncKeyState(vkCode);
+  const keyState = user32.symbols.GetKeyState(vkCode);
   return {
     isPressed: (asyncState & 0x8000) !== 0,
     isToggled: (keyState & 0x0001) !== 0,
-  }
+  };
 }
 
-export function releaseAll(_pause = config.PAUSE) {
-  const keysToRelease: (keyof typeof KEYBOARD_MAPPING)[] = [
-    'shift',
-    'shiftleft',
-    'shiftright',
-    'ctrl',
-    'ctrlleft',
-    'ctrlright',
-    'alt',
-    'altleft',
-    'altright',
-    'win',
-    'winleft',
-    'winright',
-  ]
-  const letters = 'abcdefghijklmnopqrstuvwxyz'.split(
-    ''
-  ) as (keyof typeof KEYBOARD_MAPPING)[]
-  keysToRelease.push(...letters)
+export function releaseAll() {
+  const keysToRelease: KeyName[] = [
+    "shift",
+    "shiftleft",
+    "shiftright",
+    "ctrl",
+    "ctrlleft",
+    "ctrlright",
+    "alt",
+    "altleft",
+    "altright",
+    "win",
+    "winleft",
+    "winright",
+  ];
+  const letters = "abcdefghijklmnopqrstuvwxyz".split("") as KeyName[];
+  keysToRelease.push(...letters);
   for (const key of keysToRelease) {
     if (isPressed(key)) {
-      release(key, _pause)
+      release(key);
     }
   }
-  return keyboard
+  return keyboard;
 }

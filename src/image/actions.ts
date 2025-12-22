@@ -1,7 +1,7 @@
 import { gdiplus, kernel32 } from "../core/ffi-loader";
 import { ptr } from "bun:ffi";
-import { ImageBuffer } from "../types/image";
-import { ImageProcessor } from "./class";
+import { ImageData, ImageFormat } from "../types/image";
+import { Image } from "./class";
 import { extname } from "path";
 
 let token: bigint | null = null;
@@ -21,12 +21,12 @@ function ensureGdiPlus() {
   );
 
   if (status !== 0) {
-    throw new Error(`GdiplusStartup failed: ${status}`);
+    throw new Error(`GDI+ Startup failed: ${status}`);
   }
   token = tokenBuf[0];
 }
 
-export async function loadImage(path: string): Promise<ImageProcessor | null> {
+export async function loadImage(path: string): Promise<Image | null> {
   try {
     ensureGdiPlus();
 
@@ -39,7 +39,7 @@ export async function loadImage(path: string): Promise<ImageProcessor | null> {
     );
 
     if (status !== 0) {
-      console.error(`GdipCreateBitmapFromFile failed: ${status} for ${path}`);
+      console.error(`GDI+ Load Image failed: ${status} for ${path}`);
       return null;
     }
 
@@ -69,7 +69,7 @@ export async function loadImage(path: string): Promise<ImageProcessor | null> {
       );
 
       if (lockStatus !== 0) {
-        console.error(`GdipBitmapLockBits failed: ${lockStatus}`);
+        console.error(`GDI+ Load Image LockBits failed: ${lockStatus}`);
         return null;
       }
 
@@ -96,7 +96,7 @@ export async function loadImage(path: string): Promise<ImageProcessor | null> {
           }
         }
 
-        return new ImageProcessor({ path, width, height, data });
+        return new Image({ path, width, height, buffer: data });
       } finally {
         gdiplus.symbols.GdipBitmapUnlockBits(bitmap, ptr(bitmapData));
       }
@@ -104,27 +104,12 @@ export async function loadImage(path: string): Promise<ImageProcessor | null> {
       gdiplus.symbols.GdipDisposeImage(bitmap);
     }
   } catch (e) {
-    console.error(`GDI Load Image Error: ${e}`);
+    console.error(`GDI+ Load Image Error: ${e}`);
     return null;
   }
 }
 
-function getEncoderClsid(
-  format:
-    | "png"
-    | "jpg"
-    | "jpeg"
-    | "bmp"
-    | "webp"
-    | "gif"
-    | "tiff"
-    | "ico"
-    | "heic"
-    | "heif"
-    | "avif"
-    | "svg"
-    | "raw"
-): Uint8Array {
+function getEncoderClsid(format: keyof typeof ImageFormat): Uint8Array {
   const clsid = new Uint8Array(16);
   const view = new DataView(clsid.buffer);
 
@@ -215,13 +200,13 @@ function getEncoderClsid(
 }
 
 export async function saveImage(
-  img: ImageBuffer,
+  img: Image | ImageData,
   path?: string
 ): Promise<boolean> {
   try {
     ensureGdiPlus();
 
-    const { width, height, data } = img;
+    const { width, height, buffer } = img;
     const stride = width * 4;
     const PixelFormat32bppARGB = 2498570;
 
@@ -232,21 +217,25 @@ export async function saveImage(
       height,
       stride,
       PixelFormat32bppARGB,
-      ptr(data),
+      ptr(buffer),
       ptr(bitmapPtrBuf)
     );
 
     if (status !== 0) {
-      console.error(`GdipCreateBitmapFromScan0 failed: ${status}`);
+      console.error(`GDI+ Create Bitmap From Scan0 failed: ${status}`);
       return false;
     }
 
     const bitmap = bitmapPtrBuf[0];
 
     try {
-      const outPath = path || img.path;
+      const outPath = path || img?.path || `screen_${Date.now()}.png`;
       if (!extname(outPath)) {
-        console.error(`Invalid path: "${outPath}" required file extension: png, jpg, jpeg, bmp, webp, gif, tiff, ico, heic, heif, avif, svg, raw`);
+        console.error(
+          `Invalid path: "${outPath}" required file extension: ${Object.keys(
+            ImageFormat
+          ).join(", ")}`
+        );
         return false;
       }
       const clsid = getEncoderClsid(extname(outPath).replace(".", "") as any);
@@ -260,7 +249,7 @@ export async function saveImage(
       );
 
       if (saveStatus !== 0) {
-        console.error(`GdipSaveImageToFile failed: ${saveStatus}`);
+        console.error(`GDI+ Save Image To File failed: ${saveStatus}`);
         return false;
       }
       return true;
@@ -268,7 +257,7 @@ export async function saveImage(
       gdiplus.symbols.GdipDisposeImage(bitmap);
     }
   } catch (e) {
-    console.error(`GDI Save Image Error: ${e}`);
+    console.error(`GDI+ Save Image Error: ${e}`);
     return false;
   }
 }

@@ -1,5 +1,5 @@
-import { ImageBuffer } from "../types/image";
-import { ImageProcessor } from "./class";
-export declare function loadImage(path: string): Promise<ImageProcessor | null>;
-export declare function saveImage(img: ImageBuffer, path?: string): Promise<boolean>;
+import { ImageData } from "../types/image";
+import { Image } from "./class";
+export declare function loadImage(path: string): Promise<Image | null>;
+export declare function saveImage(img: Image | ImageData, path?: string): Promise<boolean>;
 //# sourceMappingURL=actions.d.ts.map

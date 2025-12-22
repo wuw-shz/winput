@@ -12,7 +12,8 @@
     "strictNullChecks": false,
     "skipLibCheck": true,
     "strict": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "pretty": true
   },
   "include": [
     "src"

@@ -1,15 +1,15 @@
 {
   "name": "winput",
-  "version": "3.2.1",
+  "version": "4.0.0",
   "description": "Windows input automation library for Bun - control mouse and keyboard programmatically",
   "type": "module",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.d.ts",
   "exports": {
     ".": {
       "bun": "./src/index.ts",
       "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./src/index.d.ts"
     }
   },
   "files": [
@@ -18,9 +18,12 @@
   ],
   "scripts": {
     "build": "bun run clean && bun run build:js && bun run build:types",
-    "build:js": "bun build src/index.ts --outdir dist --target bun --format esm --minify",
+    "build:js": "bun build src/index.ts --outdir=dist --target=bun --format=esm --source-map=external --minify",
     "build:types": "bunx tsc --emitDeclarationOnly --outDir dist",
     "clean": "rm -rf dist",
+    "dev": "concurrently 'bun run dev:js' 'bun run dev:types'",
+    "dev:js": "bun build src/index.ts --outdir=dist --target=bun --format=esm --source-map=external --minify --watch",
+    "dev:types": "bunx tsc --emitDeclarationOnly --outDir dist --watch",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
@@ -67,6 +70,7 @@
     "@types/cli-progress": "^3.11.6",
     "@types/grunt": "^0.4.32",
     "cli-progress": "^3.12.0",
+    "concurrently": "^9.2.1",
     "gradient-string": "^3.0.0",
     "grunt": "^1.6.1",
     "grunt-ts-concat": "^0.2.2",

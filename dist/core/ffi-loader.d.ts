@@ -192,6 +192,14 @@ export declare const user32: import("bun:ffi").Library<{
         args: (FFIType.uint64_t | FFIType.bool)[];
         returns: FFIType.int32_t;
     };
+    EnumDisplayMonitors: {
+        args: (FFIType.ptr | FFIType.function)[];
+        returns: FFIType.bool;
+    };
+    GetMonitorInfoW: {
+        args: FFIType.ptr[];
+        returns: FFIType.bool;
+    };
 }>;
 export declare const gdi32: import("bun:ffi").Library<{
     GetPixel: {

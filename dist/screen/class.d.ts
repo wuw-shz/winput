@@ -1,103 +1,366 @@
 import * as actions from "./actions";
-/**
- * Screen-related functions for pixel operations and screen information.
- */
 declare class Screen {
     /**
-     * Get the screen dimensions.
+     * Gets the primary monitor's screen dimensions.
+     *
+     * Returns the width and height of the primary display in pixels.
+     * For multi-monitor setups, use `getMonitors()` to get individual
+     * monitor dimensions.
+     *
      * @returns {{ width: number, height: number }} Screen width and height in pixels
+     * @example
+     * ```typescript
+     * const size = screen.getScreenSize();
+     * console.log(`Resolution: ${size.width}x${size.height}`);
+     *
+     * // Use for full screen capture
+     * const fullscreen = screen.capture(0, 0, size.width, size.height);
+     * ```
      */
     getScreenSize: typeof actions.getScreenSize;
     /**
-     * Get information about all monitors.
-     * @returns {Array<{ rect: Rect, isPrimary: boolean }>} Array of monitor info
+     * Enumerates all connected physical display monitors.
+     *
+     * Retrieves detailed information about each monitor using the Windows API
+     * (`EnumDisplayMonitors` and `GetMonitorInfoW`). Useful for multi-monitor
+     * setups to determine monitor positions, work areas, and primary display.
+     *
+     * @returns {Array<{ handle: bigint, rect: Rect, workArea: Rect, isPrimary: boolean, deviceName: string }>} Array of monitor information
+     * @property {bigint} handle - Monitor handle (HMONITOR) for future API calls
+     * @property {Rect} rect - Full display area coordinates (left, top, right, bottom)
+     * @property {Rect} workArea - Usable desktop area excluding taskbar (left, top, right, bottom)
+     * @property {boolean} isPrimary - Whether this is the primary display
+     * @property {string} deviceName - System device name (e.g., "\\\\.\\DISPLAY1")
+     * @example
+     * ```typescript
+     * const monitors = screen.getMonitors();
+     * monitors.forEach((monitor, i) => {
+     *   console.log(`Monitor ${i + 1}:`);
+     *   console.log(`  Device: ${monitor.deviceName}`);
+     *   console.log(`  Primary: ${monitor.isPrimary}`);
+     *   console.log(`  Resolution: ${monitor.rect.right - monitor.rect.left}x${monitor.rect.bottom - monitor.rect.top}`);
+     *   console.log(`  Work area: ${monitor.workArea.right - monitor.workArea.left}x${monitor.workArea.bottom - monitor.workArea.top}`);
+     * });
+     *
+     * // Find primary monitor
+     * const primary = monitors.find(m => m.isPrimary);
+     * console.log(`Primary display: ${primary.deviceName}`);
+     * ```
      */
     getMonitors: typeof actions.getMonitors;
     /**
-     * Capture the screen content.
-     * @param x - X coordinate (default: 0)
-     * @param y - Y coordinate (default: 0)
-     * @param width - Width to capture (default: screen width)
-     * @param height - Height to capture (default: screen height)
-     * @returns {Uint8Array | null} Raw RGBA buffer or null if failed
+     * Captures a region of the screen as image data.
+     *
+     * Creates a snapshot of the specified screen area using GDI+. If no parameters
+     * are provided, captures the entire primary screen. The returned ImageData can
+     * be processed using the Image class or saved directly.
+     *
+     * @param x - X coordinate of capture region's top-left corner (default: 0)
+     * @param y - Y coordinate of capture region's top-left corner (default: 0)
+     * @param width - Width of capture region in pixels (default: screen width)
+     * @param height - Height of capture region in pixels (default: screen height)
+     * @returns {ImageData | null} Image buffer with metadata or null if capture failed
+     * @example
+     * ```typescript
+     * // Full screen capture
+     * const fullscreen = screen.capture();
+     *
+     * // Capture specific region
+     * const region = screen.capture(100, 100, 400, 300);
+     *
+     * // Process captured image
+     * if (region) {
+     *   const img = image.process(region);
+     *   img.grayscale().save("screenshot.png");
+     * }
+     *
+     * // Capture top-left quadrant
+     * const size = screen.getScreenSize();
+     * const quadrant = screen.capture(0, 0, size.width / 2, size.height / 2);
+     * ```
      */
-    capture: typeof actions.captureScreen;
+    capture: typeof actions.capture;
     /**
-     * Get the RGB color of a pixel at the specified coordinates.
-     * @param x - X coordinate
-     * @param y - Y coordinate
-     * @returns {RGB | null} RGB color object or null if failed
+     * Reads the RGB color value of a single pixel.
+     *
+     * Captures and returns the color of the pixel at the specified screen coordinates.
+     * Coordinates are relative to the top-left corner of the primary monitor (0, 0).
+     *
+     * @param x - X coordinate of the pixel
+     * @param y - Y coordinate of the pixel
+     * @returns {RGB | null} RGB color object `{ r: number, g: number, b: number }` or null if failed
+     * @example
+     * ```typescript
+     * const color = screen.getPixel(500, 300);
+     * if (color) {
+     *   console.log(`RGB: (${color.r}, ${color.g}, ${color.b})`);
+     *
+     *   // Check if pixel is red
+     *   if (color.r > 200 && color.g < 50 && color.b < 50) {
+     *     console.log("Pixel is red!");
+     *   }
+     * }
+     * ```
      */
     getPixel: typeof actions.getPixel;
     /**
-     * Get the hex color code of a pixel at the specified coordinates.
-     * @param x - X coordinate
-     * @param y - Y coordinate
+     * Reads the hexadecimal color code of a single pixel.
+     *
+     * Convenient alternative to `getPixel()` that returns the color as a
+     * hex string (e.g., "#FF0000" for red). Useful for color comparison
+     * or display purposes.
+     *
+     * @param x - X coordinate of the pixel
+     * @param y - Y coordinate of the pixel
      * @returns {string | null} Hex color string (e.g., "#FF0000") or null if failed
+     * @example
+     * ```typescript
+     * const hexColor = screen.getPixelHex(100, 200);
+     * console.log(`Color at (100, 200): ${hexColor}`);
+     *
+     * // Compare with expected color
+     * if (hexColor === "#00FF00") {
+     *   console.log("Found green pixel!");
+     * }
+     * ```
      */
     getPixelHex: typeof actions.getPixelHex;
     /**
-     * Check if a pixel matches a target color within tolerance.
-     * @param x - X coordinate
-     * @param y - Y coordinate
-     * @param target - Target RGB color to match
-     * @param tolerance - Color tolerance (0-255, default: 0)
-     * @returns {boolean} True if pixel matches target color
+     * Checks if a pixel matches a target color within tolerance.
+     *
+     * Compares the pixel's RGB values against the target color, allowing
+     * for slight variations controlled by the tolerance parameter. Returns
+     * true only if all three color channels (R, G, B) are within tolerance.
+     *
+     * @param x - X coordinate of the pixel
+     * @param y - Y coordinate of the pixel
+     * @param target - Target RGB color object to match
+     * @param tolerance - Color tolerance (0-255, default: 0). Higher values allow more color variation
+     * @returns {boolean} True if pixel matches target color within tolerance
+     * @example
+     * ```typescript
+     * // Exact color match
+     * const isRed = screen.checkPixel(100, 200, { r: 255, g: 0, b: 0 });
+     *
+     * // Match with tolerance (useful for anti-aliased graphics)
+     * const isNearlyRed = screen.checkPixel(100, 200, { r: 255, g: 0, b: 0 }, 10);
+     *
+     * // Check for specific UI element color
+     * if (screen.checkPixel(500, 300, { r: 44, g: 156, b: 217 }, 5)) {
+     *   console.log("Found blue button!");
+     * }
+     * ```
      */
     checkPixel: typeof actions.checkPixel;
     /**
-     * Wait for a pixel to match a target color.
-     * @param x - X coordinate
-     * @param y - Y coordinate
+     * Waits for a pixel to match a target color.
+     *
+     * Continuously polls the pixel until it matches the target color or the
+     * timeout expires. Useful for waiting on UI state changes or animations.
+     * If no timeout is specified, waits indefinitely.
+     *
+     * @param x - X coordinate of the pixel
+     * @param y - Y coordinate of the pixel
      * @param target - Target RGB color to match
      * @param tolerance - Color tolerance (0-255, default: 0)
-     * @param timeout - Maximum wait time in ms (optional, waits indefinitely if not set)
-     * @returns {Promise<boolean>} Resolves true when matched, false on timeout
+     * @param timeout - Maximum wait time in milliseconds (optional, waits indefinitely if not set)
+     * @returns {Promise<boolean>} Resolves to true when color matches, false if timeout occurs
+     * @example
+     * ```typescript
+     * // Wait for loading indicator to turn green
+     * const success = await screen.waitForPixel(
+     *   100, 200,
+     *   { r: 0, g: 255, b: 0 },
+     *   5,
+     *   5000 // 5 second timeout
+     * );
+     *
+     * if (success) {
+     *   console.log("Loading complete!");
+     * } else {
+     *   console.log("Timeout waiting for pixel change");
+     * }
+     *
+     * // Wait indefinitely for specific color
+     * await screen.waitForPixel(500, 300, { r: 255, g: 0, b: 0 });
+     * console.log("Red pixel detected!");
+     * ```
      */
     waitForPixel: typeof actions.waitForPixel;
     /**
-     * Get RGB colors for multiple pixel positions at once.
-     * @param positions - Array of {x, y} coordinates
+     * Reads RGB colors for multiple pixels in a single operation.
+     *
+     * Efficiently captures colors of multiple pixels at once. More performant
+     * than calling `getPixel()` multiple times. Returns array with same order
+     * as input positions.
+     *
+     * @param positions - Array of `{ x: number, y: number }` coordinate objects
      * @returns {(RGB | null)[]} Array of RGB colors (null for failed reads)
+     * @example
+     * ```typescript
+     * // Read colors from multiple locations
+     * const colors = screen.getMultiplePixels([
+     *   { x: 100, y: 100 },
+     *   { x: 200, y: 200 },
+     *   { x: 300, y: 300 }
+     * ]);
+     *
+     * colors.forEach((color, i) => {
+     *   if (color) {
+     *     console.log(`Pixel ${i}: RGB(${color.r}, ${color.g}, ${color.b})`);
+     *   }
+     * });
+     *
+     * // Check if all pixels are the same color
+     * const allSame = colors.every((c, i) =>
+     *   i === 0 || (c.r === colors[0].r && c.g === colors[0].g && c.b === colors[0].b)
+     * );
+     * ```
      */
     getMultiplePixels: typeof actions.getMultiplePixels;
     /**
-     * Check if all pixels match their target colors.
-     * @param checks - Array of pixel checks with x, y, target RGB, and optional tolerance
+     * Checks if all specified pixels match their respective target colors.
+     *
+     * Validates multiple pixel-color pairs simultaneously. Returns true only
+     * if every pixel matches its target color within the specified tolerance.
+     * Useful for verifying complex UI states or patterns.
+     *
+     * @param checks - Array of pixel check objects with `x`, `y`, `target` RGB, and optional `tolerance`
      * @returns {boolean} True if all pixels match their targets
+     * @example
+     * ```typescript
+     * // Verify UI state by checking multiple indicator pixels
+     * const uiReady = screen.checkMultiplePixels([
+     *   { x: 100, y: 100, target: { r: 0, g: 255, b: 0 }, tolerance: 5 },
+     *   { x: 200, y: 200, target: { r: 255, g: 0, b: 0 }, tolerance: 5 },
+     *   { x: 300, y: 300, target: { r: 0, g: 0, b: 255 } }
+     * ]);
+     *
+     * if (uiReady) {
+     *   console.log("All UI elements are in expected state");
+     * }
+     * ```
      */
     checkMultiplePixels: typeof actions.checkMultiplePixels;
     /**
-     * Wait for any of the pixel conditions to match.
-     * @param checks - Array of pixel checks with x, y, target RGB, and optional tolerance
-     * @param timeout - Maximum wait time in ms (optional)
-     * @returns {Promise<number>} Index of first matched condition, or -1 on timeout
+     * Waits for any one of multiple pixel conditions to match.
+     *
+     * Continuously polls all specified pixels until at least one matches its
+     * target color. Returns the index of the first matching condition, or -1
+     * if timeout occurs. Perfect for waiting on multiple possible UI states.
+     *
+     * @param checks - Array of pixel check objects with `x`, `y`, `target` RGB, and optional `tolerance`
+     * @param timeout - Maximum wait time in milliseconds (optional, waits indefinitely if not specified)
+     * @returns {Promise<number>} Index of first matched condition (0-based), or -1 on timeout
+     * @example
+     * ```typescript
+     * // Wait for either success (green) or error (red) indicator
+     * const result = await screen.waitForAnyPixel([
+     *   { x: 100, y: 100, target: { r: 0, g: 255, b: 0 }, tolerance: 5 },   // Success
+     *   { x: 100, y: 100, target: { r: 255, g: 0, b: 0 }, tolerance: 5 }    // Error
+     * ], 10000);
+     *
+     * if (result === 0) {
+     *   console.log("Success indicator detected!");
+     * } else if (result === 1) {
+     *   console.log("Error indicator detected!");
+     * } else {
+     *   console.log("Timeout - no indicator detected");
+     * }
+     * ```
      */
     waitForAnyPixel: typeof actions.waitForAnyPixel;
     /**
-     * Search for a pixel of a specific color in the defined region.
-     * @param x1 - X coordinate of one corner
-     * @param y1 - Y coordinate of one corner
-     * @param x2 - X coordinate of the opposite corner
-     * @param y2 - Y coordinate of the opposite corner
-     * @param color - Target RGB color, hex string, or number (0xRRGGBB)
+     * Searches for the first occurrence of a specific color in a rectangular region.
+     *
+     * Scans the specified area left-to-right, top-to-bottom to find a pixel
+     * matching the target color. Returns coordinates of the first match found.
+     * Color can be specified as RGB object, hex string, or numeric value.
+     *
+     * @param x1 - X coordinate of first corner
+     * @param y1 - Y coordinate of first corner
+     * @param x2 - X coordinate of opposite corner
+     * @param y2 - Y coordinate of opposite corner
+     * @param color - Target color as RGB object, hex string (e.g., "#FF0000"), or number (0xRRGGBB)
      * @param tolerance - Color tolerance (0-255, default: 0)
-     * @returns {Point | null} Coordinates of the first match or null if not found
+     * @returns {Point | null} Coordinates `{ x: number, y: number }` of first match, or null if not found
+     * @example
+     * ```typescript
+     * // Search for red pixel using RGB object
+     * const pos1 = screen.pixelSearch(0, 0, 800, 600, { r: 255, g: 0, b: 0 });
+     *
+     * // Search using hex color
+     * const pos2 = screen.pixelSearch(0, 0, 800, 600, "#00FF00");
+     *
+     * // Search with numeric color and tolerance
+     * const pos3 = screen.pixelSearch(0, 0, 800, 600, 0x0000FF, 10);
+     *
+     * if (pos1) {
+     *   console.log(`Found red pixel at (${pos1.x}, ${pos1.y})`);
+     * }
+     * ```
      */
     pixelSearch: typeof actions.pixelSearch;
     /**
-     * Search for an image pattern on the screen.
-     * Supports various image formats (PNG, JPEG, BMP, etc.).
-     * @param x1 - X coordinate of one corner
-     * @param y1 - Y coordinate of one corner
-     * @param x2 - X coordinate of the opposite corner
-     * @param y2 - Y coordinate of the opposite corner
-     * @param path - Path to the image file
-     * @param tolerance - Color tolerance (0-255, default: 0)
-     * @returns {Promise<Point | null>} Coordinates of the top-left corner of the match
+     * Searches for an image pattern within a screen region.
+     *
+     * Locates a template image within the specified rectangular area using
+     * pixel-by-pixel comparison. Supports loading images from files or using
+     * ImageData directly. Returns the top-left coordinates of the match.
+     *
+     * @param x1 - X coordinate of search region's first corner
+     * @param y1 - Y coordinate of search region's first corner
+     * @param x2 - X coordinate of search region's opposite corner
+     * @param y2 - Y coordinate of search region's opposite corner
+     * @param image - File path to template image OR ImageData object
+     * @param tolerance - Color matching tolerance (0-255, default: 0). Higher values allow more color variation
+     * @returns {Promise<Point | null>} Coordinates `{ x: number, y: number }` of match's top-left corner, or null if not found
+     * @example
+     * ```typescript
+     * // Search for button image on screen
+     * const buttonPos = await screen.imageSearch(
+     *   0, 0, 1920, 1080,
+     *   "assets/button.png",
+     *   10
+     * );
+     *
+     * if (buttonPos) {
+     *   console.log(`Button found at (${buttonPos.x}, ${buttonPos.y})`);
+     *   // Click on the button
+     *   mouse.moveTo(buttonPos.x + 50, buttonPos.y + 20);
+     *   mouse.click();
+     * }
+     *
+     * // Use ImageData directly
+     * const icon = await image.load("icon.png");
+     * if (icon) {
+     *   const iconPos = await screen.imageSearch(0, 0, 800, 600, icon.img);
+     *   console.log(`Icon found at`, iconPos);
+     * }
+     * ```
+     *
+     * Supported file formats:
+     * - `.png` - Portable Network Graphics (lossless)
+     * - `.jpg` / `.jpeg` - JPEG (lossy compression)
+     * - `.bmp` - Bitmap (uncompressed)
+     * - `.webp` - WebP (modern format)
+     * - `.gif` - Graphics Interchange Format (limited colors)
+     * - `.tiff` - Tagged Image File Format (high quality)
+     * - `.ico` - Icon format
+     * - `.heic` - High Efficiency Image Container
+     * - `.heif` - High Efficiency Image Format
+     * - `.avif` - AV1 Image File Format
+     * - `.svg` - Scalable Vector Graphics
+     * - `.raw` - Raw image data
      */
     imageSearch: typeof actions.imageSearch;
 }
+/**
+ * Screen capture and pixel manipulation utilities for Windows.
+ *
+ * This class provides comprehensive screen interaction capabilities
+ * All operations work across multi-monitor setups using Windows GDI+ API.
+ */
 export declare const screen: Screen;
 export {};
 //# sourceMappingURL=class.d.ts.map

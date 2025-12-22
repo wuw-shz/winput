@@ -4,5 +4,5 @@ export * from "./mouse";
 export * from "./image";
 export * from "./window";
 export * from "./screen";
+export * from "./utils";
 export type * from "./types";
-export { utils } from "./utils";
