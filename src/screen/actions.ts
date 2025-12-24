@@ -4,6 +4,7 @@ import { ptr, type Pointer, JSCallback } from "bun:ffi";
 import type { RGB, Point, ImageData } from "../types";
 import { utils } from "../utils";
 import { image, Image } from "../image/class";
+import { Pixel } from "./pixel";
 
 // ==================== Internal Helpers ====================
 
@@ -26,17 +27,12 @@ export function getScreenSize() {
   };
 }
 
-export function getPixel(x: number, y: number): RGB | null {
+export function getPixel(x: number, y: number): Pixel | null {
   const dc = getDC();
   if (!dc) return null;
   const c = gdi32.symbols.GetPixel(dc as any, x, y);
-  return { r: c & 0xff, g: (c >> 8) & 0xff, b: (c >> 16) & 0xff };
-}
-
-export function getPixelHex(x: number, y: number): string | null {
-  const rgb = getPixel(x, y);
-  if (!rgb) return null;
-  return utils.rgbToHex(rgb);
+  const rgb = { r: c & 0xff, g: (c >> 8) & 0xff, b: (c >> 16) & 0xff };
+  return new Pixel(x, y, rgb);
 }
 
 export function checkPixel(
@@ -45,9 +41,9 @@ export function checkPixel(
   target: RGB,
   tolerance = 0
 ): boolean {
-  const p = getPixel(x, y);
-  if (!p) return false;
-  return utils.isColorSimilar(p, target, tolerance);
+  const pixel = getPixel(x, y);
+  if (!pixel) return false;
+  return pixel.isSimilar(target, tolerance);
 }
 
 export function waitForPixel(
@@ -55,7 +51,8 @@ export function waitForPixel(
   y: number,
   target: RGB,
   tolerance = 0,
-  timeout?: number
+  timeout?: number,
+  interval?: number
 ): Promise<boolean> {
   return new Promise((resolve) => {
     let elapsed = 0;
@@ -65,16 +62,19 @@ export function waitForPixel(
         resolve(true);
         return;
       }
-      if (timeout && (elapsed += 50) >= timeout) {
+      if (timeout && (elapsed += interval ?? 50) >= timeout) {
         clearInterval(id);
         resolve(false);
       }
-    }, 50);
+    }, interval ?? 50);
   });
 }
 
 export function getMultiplePixels(positions: Point[]): (RGB | null)[] {
-  return positions.map((p) => getPixel(p.x, p.y));
+  return positions.map((p) => {
+    const pixel = getPixel(p.x, p.y);
+    return pixel ? pixel.toRGB() : null;
+  });
 }
 
 export function checkMultiplePixels(
@@ -85,7 +85,8 @@ export function checkMultiplePixels(
 
 export function waitForAnyPixel(
   checks: Array<{ x: number; y: number; target: RGB; tolerance?: number }>,
-  timeout?: number
+  timeout?: number,
+  interval?: number
 ): Promise<number> {
   return new Promise((resolve) => {
     let elapsed = 0;
@@ -98,11 +99,11 @@ export function waitForAnyPixel(
           return;
         }
       }
-      if (timeout && (elapsed += 50) >= timeout) {
+      if (timeout && (elapsed += interval ?? 50) >= timeout) {
         clearInterval(id);
         resolve(-1);
       }
-    }, 50);
+    }, interval ?? 50);
   });
 }
 

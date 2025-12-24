@@ -81,50 +81,38 @@ declare class Screen {
      */
     capture: typeof actions.capture;
     /**
-     * Reads the RGB color value of a single pixel.
+     * Reads the RGB color value of a single pixel and returns a Pixel object.
      *
-     * Captures and returns the color of the pixel at the specified screen coordinates.
+     * Captures and returns a Pixel object containing the color and position of the pixel
+     * at the specified screen coordinates. The Pixel object provides convenient methods
+     * for color comparison and conversion.
      * Coordinates are relative to the top-left corner of the primary monitor (0, 0).
      *
      * @param x - X coordinate of the pixel
      * @param y - Y coordinate of the pixel
-     * @returns {RGB | null} RGB color object `{ r: number, g: number, b: number }` or null if failed
+     * @returns {Pixel | null} Pixel object with color comparison methods, or null if failed
      * @example
      * ```typescript
-     * const color = screen.getPixel(500, 300);
-     * if (color) {
-     *   console.log(`RGB: (${color.r}, ${color.g}, ${color.b})`);
+     * // Using fluent API for color comparison
+     * const pixel = screen.getPixel(500, 300);
+     * if (pixel?.isEqual({ r: 255, g: 0, b: 0 })) {
+     *   console.log("Pixel is exactly red!");
+     * }
      *
-     *   // Check if pixel is red
-     *   if (color.r > 200 && color.g < 50 && color.b < 50) {
-     *     console.log("Pixel is red!");
-     *   }
+     * // Check with tolerance
+     * if (pixel?.isSimilar({ r: 255, g: 0, b: 0 }, 10)) {
+     *   console.log("Pixel is approximately red!");
+     * }
+     *
+     * // Access RGB values directly
+     * if (pixel) {
+     *   console.log(`RGB: (${pixel.r}, ${pixel.g}, ${pixel.b})`);
+     *   console.log(`Hex: ${pixel.toHex()}`);
+     *   console.log(`Position: (${pixel.x}, ${pixel.y})`);
      * }
      * ```
      */
     getPixel: typeof actions.getPixel;
-    /**
-     * Reads the hexadecimal color code of a single pixel.
-     *
-     * Convenient alternative to `getPixel()` that returns the color as a
-     * hex string (e.g., "#FF0000" for red). Useful for color comparison
-     * or display purposes.
-     *
-     * @param x - X coordinate of the pixel
-     * @param y - Y coordinate of the pixel
-     * @returns {string | null} Hex color string (e.g., "#FF0000") or null if failed
-     * @example
-     * ```typescript
-     * const hexColor = screen.getPixelHex(100, 200);
-     * console.log(`Color at (100, 200): ${hexColor}`);
-     *
-     * // Compare with expected color
-     * if (hexColor === "#00FF00") {
-     *   console.log("Found green pixel!");
-     * }
-     * ```
-     */
-    getPixelHex: typeof actions.getPixelHex;
     /**
      * Checks if a pixel matches a target color within tolerance.
      *
